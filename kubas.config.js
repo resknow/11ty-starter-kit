@@ -102,8 +102,8 @@ module.exports = {
         space: {
             py: `padding-block`,
             px: `padding-inline`,
-            ml: `margin-inline-start`,
-            mt: `margin-block-start`,
+            ml: `margin-left`,
+            mt: `margin-top`,
             'flow-space': {
                 '> *': '--flow-space'
             },
