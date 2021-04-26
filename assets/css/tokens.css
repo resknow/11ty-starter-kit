@@ -21,11 +21,8 @@
   --color-white: #fff;
   --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --font-mono: "Jet Brains Mono", "SFMono-Regular", Consolas, "Liberation Mono",
-    Menlo, Courier, monospace;
-  --weight-400: 400;
-  --weight-700: 700;
-  --weight-900: 900;
+  --weight-normal: 400;
+  --weight-bold: 700;
   --size-xs: clamp(0.6075rem, 0.5636rem + 0.2195vw, 0.72rem);
   --size-sm: clamp(0.7294rem, 0.6628rem + 0.3329vw, 0.9rem);
   --size-base: clamp(0.875rem, 0.7774rem + 0.4878vw, 1.125rem);
@@ -82,7 +79,4 @@
   --shadow-2xl: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.05),
     0 0.8rem 1rem rgba(0, 0, 0, 0.05), 0 1rem 1.4rem rgba(0, 0, 0, 0.05),
     0 1.2rem 2rem rgba(0, 0, 0, 0.05), 0 1.4rem 2.2rem rgba(0, 0, 0, 0.05);
-  --breakpoints-sm: 28em;
-  --breakpoints-md: 40em;
-  --breakpoints-lg: 60em;
 }
