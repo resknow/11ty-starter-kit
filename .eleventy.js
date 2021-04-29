@@ -6,6 +6,9 @@ module.exports = (eleventyConfig) => {
     // Navigation Plugin
     eleventyConfig.addPlugin(eleventyNavigationPlugin);
 
+    // Custom Watch Targets
+    eleventyConfig.addWatchTarget('kubas.config.js');
+
     // Passthrough Files/Directories
     [
         'assets'
