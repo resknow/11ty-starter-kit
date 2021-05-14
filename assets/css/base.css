@@ -99,6 +99,14 @@ li {
 	padding: 0;
 }
 
+ul.list {
+	list-style: initial;
+}
+
+ul.list li {
+	margin-left: var(--space-8, 2em);
+}
+
 h1,
 h2,
 h3,
