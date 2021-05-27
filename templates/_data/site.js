@@ -24,7 +24,7 @@ module.exports = {
 	 * For page specific javascript, use the same keys in
 	 * frontmatter.
 	 */
-	scripts: [],
+	scripts: [`/assets/js/alpine.js`],
 
 	/**
 	 * Cookie Consent
