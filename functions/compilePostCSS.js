@@ -7,7 +7,8 @@ const plugins = [
 	require('postcss-import-ext-glob'),
 	require('postcss-import'),
 	require('postcss-nested'),
-	require('postcss-logical')
+	require('postcss-logical'),
+	require('postcss-combine-media-query')
 ];
 
 module.exports = async function (inputPath) {
