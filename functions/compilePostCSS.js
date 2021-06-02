@@ -4,17 +4,18 @@ const postcss = require('postcss');
 const cleanCSS = require('clean-css');
 
 const plugins = [
-    require('postcss-import'),
-    require('postcss-nested'),
-    require('postcss-logical')
+	require('postcss-import-ext-glob'),
+	require('postcss-import'),
+	require('postcss-nested'),
+	require('postcss-logical')
 ];
 
-module.exports = async function(inputPath) {
-    let src = fs.readFileSync(inputPath);
+module.exports = async function (inputPath) {
+	let src = fs.readFileSync(inputPath);
 
-    return await postcss(plugins)
-        .process(src, { from: inputPath })
-        .then((result) => {
-            return new cleanCSS({}).minify(result.css).styles;
-        });
-}
+	return await postcss(plugins)
+		.process(src, { from: inputPath })
+		.then((result) => {
+			return new cleanCSS({}).minify(result.css).styles;
+		});
+};
