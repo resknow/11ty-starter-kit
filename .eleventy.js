@@ -12,7 +12,7 @@ module.exports = (eleventyConfig) => {
 	eleventyConfig.addWatchTarget('kubas.config.js');
 
 	// Passthrough Files/Directories
-	['assets'].forEach((item) => {
+	['assets', 'favicon.ico'].forEach((item) => {
 		eleventyConfig.addPassthroughCopy(item);
 	});
 

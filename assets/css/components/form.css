@@ -27,15 +27,15 @@ textarea {
 	width: 100%;
 }
 
-input[type='text'].is-invalid,
-input[type='password'].is-invalid,
-input[type='tel'].is-invalid,
-input[type='email'].is-invalid,
-input[type='number'].is-invalid,
-input[type='datetime-local'].is-invalid,
-input[type='date'].is-invalid,
-select.is-invalid,
-textarea.is-invalid {
+input[type='text'][data-state='invalid'],
+input[type='password'][data-state='invalid'],
+input[type='tel'][data-state='invalid'],
+input[type='email'][data-state='invalid'],
+input[type='number'][data-state='invalid'],
+input[type='datetime-local'][data-state='invalid'],
+input[type='date'][data-state='invalid'],
+select[data-state='invalid'],
+textarea[data-state='invalid'] {
 	border-color: var(--color-negative, red);
 }
 

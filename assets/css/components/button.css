@@ -1,0 +1,39 @@
+.btn {
+	--btn-background-color: var(--color-gray-90);
+	--btn-color: var(--color-white);
+	--btn-padding: var(--space-3) var(--space-6);
+
+	appearance: none;
+	background-color: var(--btn-background-color);
+	border: var(--btn-border, 0);
+	border-radius: var(--btn-radius, var(--radius-base));
+	box-shadow: var(--btn-shadow, none);
+	color: var(--btn-color);
+	font-size: var(--btn-font-size, inherit);
+	padding: var(--btn-padding);
+	text-decoration: none;
+
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	min-width: var(--btn-min-width, 5rem);
+	transition: var(--btn-transition, all 400ms ease-in-out);
+}
+
+.btn:hover,
+.btn:focus {
+	--btn-background-color: var(--color-white);
+	--btn-color: var(--color-primary);
+	--btn-shadow: var(--shadow-xl);
+	--btn-transition: all 150ms ease-in-out;
+}
+
+.btn--sm {
+	--btn-padding: var(--space-2) var(--space-4);
+}
+
+.btn--lg {
+	--btn-padding: var(--space-3) var(--space-8);
+	--btn-font-size: var(--size-lg);
+}

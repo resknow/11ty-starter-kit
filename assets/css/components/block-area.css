@@ -5,14 +5,11 @@
 
 	display: grid;
 	grid-template-columns: var(--columns);
+	row-gap: var(--row-gap, var(--space-10));
 }
 
 .block-area > * {
 	grid-column: 2 / span 3;
-}
-
-.block-area > * + * {
-	margin-top: var(--row-gap, var(--space-10));
 }
 
 .block-area > h1 + p,
@@ -34,10 +31,7 @@
 	--row-gap: var(--space-4);
 }
 
-.block-area > .alignwide {
-	grid-column: 2 / span 3;
-}
-
+.block-area > .alignwide,
 .block-area > .alignfull {
 	grid-column: 1 / -1;
 }
