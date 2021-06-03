@@ -1,0 +1,41 @@
+$grid-columns: 12 !default;
+$grid-rows: auto !default;
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(var(--grid-columns, $grid-columns), 1fr);
+	grid-template-rows: repeat(var(--grid-rows, $grid-rows), 1fr);
+	gap: var(--gap);
+}
+
+@for $i from 1 through $grid-columns {
+	.cols-#{$i} {
+		--grid-columns: #{$i};
+	}
+
+	.col-start-#{$i} {
+		grid-column-start: #{$i};
+	}
+
+	.col-span-#{$i} {
+		grid-column-end: span #{i};
+	}
+}
+
+@each $breakpoint, $value in token('breakpoints') {
+	@media (min-width: $value) {
+		@for $i from 1 through $grid-columns {
+			.#{$breakpoint}\:cols-#{$i} {
+				--grid-columns: #{$i};
+			}
+
+			.#{$breakpoint}\:col-start-#{$i} {
+				grid-column-start: #{$i};
+			}
+
+			.#{$breakpoint}\:col-span-#{$i} {
+				grid-column-end: span #{$i};
+			}
+		}
+	}
+}
