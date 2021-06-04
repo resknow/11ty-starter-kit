@@ -1,10 +1,14 @@
 const fs = require('fs');
 const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
+const componentShortcode = require('./functions/shortcode.component');
 
 // Change this to true if you want your browser to open when you run npm run dev
 const shouldAutoOpenBrowser = false;
 
 module.exports = (eleventyConfig) => {
+	// Component Shortcode
+	eleventyConfig.addShortcode('component', componentShortcode);
+
 	// Navigation Plugin
 	eleventyConfig.addPlugin(eleventyNavigationPlugin);
 
