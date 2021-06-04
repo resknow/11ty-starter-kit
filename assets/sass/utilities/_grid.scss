@@ -20,6 +20,18 @@ $grid-rows: auto !default;
 	.col-span-#{$i} {
 		grid-column-end: span #{i};
 	}
+
+	.rows-#{$i} {
+		--grid-rows: #{$i};
+	}
+
+	.row-start-#{$i} {
+		grid-row-start: #{$i};
+	}
+
+	.row-span-#{$i} {
+		grid-row-end: span #{i};
+	}
 }
 
 @each $breakpoint, $value in token('breakpoints') {
@@ -35,6 +47,18 @@ $grid-rows: auto !default;
 
 			.#{$breakpoint}\:col-span-#{$i} {
 				grid-column-end: span #{$i};
+			}
+
+			.#{$breakpoint}\:rows-#{$i} {
+				--grid-rows: #{$i};
+			}
+
+			.#{$breakpoint}\:row-start-#{$i} {
+				grid-row-start: #{$i};
+			}
+
+			.#{$breakpoint}\:row-span-#{$i} {
+				grid-row-end: span #{i};
 			}
 		}
 	}
