@@ -43,7 +43,11 @@
     </head>
     <body class="{{ bodyClass }}">
 
+        {% include "partials/header.njk" ignore missing %}
+
         {{ content | safe }}
+
+        {% include "partials/footer.njk" ignore missing %}
 
         {# Cookie Consent 😴 #}
         {% if site.cookieConsent.show %}
