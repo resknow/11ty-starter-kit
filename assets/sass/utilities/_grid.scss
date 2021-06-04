@@ -3,7 +3,7 @@ $grid-rows: auto !default;
 
 .grid {
 	display: grid;
-	grid-template-columns: repeat(var(--grid-columns, $grid-columns), 1fr);
+	grid-template-columns: repeat(var(--grid-columns, 1), 1fr);
 	grid-template-rows: repeat(var(--grid-rows, $grid-rows), 1fr);
 	gap: var(--gap);
 }
