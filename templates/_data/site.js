@@ -10,6 +10,17 @@ module.exports = {
 	url: `http://localhost:8080`,
 
 	/**
+	 * Menus
+	 */
+	menus: {
+		main: [
+			{ label: 'Home', href: '/' },
+			{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
+			{ label: 'Icons', href: '/examples/icons/' }
+		]
+	},
+
+	/**
 	 * Global stylesheets, added in the <head> of each page
 	 *
 	 * For page specific stylesheets, use the same keys in

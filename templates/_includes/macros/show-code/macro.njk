@@ -1,0 +1,23 @@
+{% macro showCode(code, language) %}
+    <div
+        x-data="{ isOpen: false }"
+        class="flow"
+    >
+        <div>
+            {{ code | safe }}
+        </div>
+        <button
+            x-text="isOpen ? `Hide code` : `Show code`"
+            @click="isOpen = !isOpen"
+            type="button"
+            class="btn"
+        >
+            Show Code
+        </button>
+        <div x-show="isOpen" style="position: relative">
+            {% highlight language|default('html') %}
+                {{ code | safe }}
+            {% endhighlight %}
+        </div>
+    </div>
+{% endmacro %}

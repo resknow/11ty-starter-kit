@@ -37,3 +37,10 @@
 	--btn-padding: var(--space-3) var(--space-8);
 	--btn-font-size: var(--size-lg);
 }
+
+@each $key, $value in token('color') {
+	.btn--#{$key} {
+		--btn-background-color: #{$value};
+		--btn-color: #{auto-color($value)};
+	}
+}

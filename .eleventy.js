@@ -1,16 +1,21 @@
-const fs = require('fs');
-const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
-const componentShortcode = require('./functions/shortcode.component');
-
 // Change this to true if you want your browser to open when you run npm run dev
 const shouldAutoOpenBrowser = false;
+const isDemoMode = process.env.DEMO_MODE || false;
+
+const fs = require('fs');
+const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
+const syntaxHighlight = require('@11ty/eleventy-plugin-syntaxhighlight');
+const iconShortcode = require('./functions/shortcode.icon');
 
 module.exports = (eleventyConfig) => {
-	// Component Shortcode
-	eleventyConfig.addShortcode('component', componentShortcode);
+	isDemoMode && console.warn(`*** ⚠ Running in demo mode ⚠ ***`);
 
-	// Navigation Plugin
+	// Shortcodes
+	eleventyConfig.addShortcode('icon', iconShortcode);
+
+	// Plugins
 	eleventyConfig.addPlugin(eleventyNavigationPlugin);
+	eleventyConfig.addPlugin(syntaxHighlight);
 
 	// Custom Watch Targets
 	eleventyConfig.addWatchTarget('kubas.config.js');

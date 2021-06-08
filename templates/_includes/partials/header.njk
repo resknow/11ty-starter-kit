@@ -1,0 +1,11 @@
+{% set items = site.menus.main %}
+{% set phone = "0208 300 8833" %}
+
+<header class="px-8 py-4">
+    <div class="container flex justify-between items-center">
+        <a class="size-lg weight-bold" href="/">{{ site.name }}</a>
+
+        {% include "components/mobile-menu.njk" %}
+        {% include "components/menu.njk" %}
+    </div>
+</header>
