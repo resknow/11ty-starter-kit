@@ -17,8 +17,7 @@
 ## Get Started
 
 ```bash
-npx degit chrismademe/11ty-starter-kit
+npx degit resknow/11ty-starter-kit
 cd 11ty-starter-kit
-npm install
-npm run dev
+npm install && npm run dev
 ```
