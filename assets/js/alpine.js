@@ -1,1655 +1,2562 @@
-/**
- * Minified by jsDelivr using Terser v5.3.5.
- * Original file: /gh/alpinejs/alpine@2.8.2/dist/alpine.js
- *
- * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
- */
-!(function (e, t) {
-	'object' == typeof exports && 'undefined' != typeof module
-		? (module.exports = t())
-		: 'function' == typeof define && define.amd
-		? define(t)
-		: ((e = e || self).Alpine = t());
-})(this, function () {
-	'use strict';
-	function e(e, t, n) {
-		return (
-			t in e
-				? Object.defineProperty(e, t, {
-						value: n,
-						enumerable: !0,
-						configurable: !0,
-						writable: !0
-				  })
-				: (e[t] = n),
-			e
-		);
+(() => {
+	// packages/alpinejs/src/scheduler.js
+	var flushPending = false;
+	var flushing = false;
+	var queue = [];
+	function scheduler(callback) {
+		queueJob(callback);
 	}
-	function t(e, t) {
-		var n = Object.keys(e);
-		if (Object.getOwnPropertySymbols) {
-			var i = Object.getOwnPropertySymbols(e);
-			t &&
-				(i = i.filter(function (t) {
-					return Object.getOwnPropertyDescriptor(e, t).enumerable;
-				})),
-				n.push.apply(n, i);
+	function queueJob(job) {
+		if (!queue.includes(job)) queue.push(job);
+		queueFlush();
+	}
+	function queueFlush() {
+		if (!flushing && !flushPending) {
+			flushPending = true;
+			queueMicrotask(flushJobs);
 		}
-		return n;
 	}
-	function n(n) {
-		for (var i = 1; i < arguments.length; i++) {
-			var r = null != arguments[i] ? arguments[i] : {};
-			i % 2
-				? t(Object(r), !0).forEach(function (t) {
-						e(n, t, r[t]);
-				  })
-				: Object.getOwnPropertyDescriptors
-				? Object.defineProperties(
-						n,
-						Object.getOwnPropertyDescriptors(r)
-				  )
-				: t(Object(r)).forEach(function (e) {
-						Object.defineProperty(
-							n,
-							e,
-							Object.getOwnPropertyDescriptor(r, e)
-						);
-				  });
+	function flushJobs() {
+		flushPending = false;
+		flushing = true;
+		for (let i = 0; i < queue.length; i++) {
+			queue[i]();
 		}
-		return n;
+		queue.length = 0;
+		flushing = false;
 	}
-	function i(e) {
-		return Array.from(new Set(e));
+
+	// packages/alpinejs/src/reactivity.js
+	var reactive;
+	var effect;
+	var release;
+	var raw;
+	var shouldSchedule = true;
+	function disableEffectScheduling(callback) {
+		shouldSchedule = false;
+		callback();
+		shouldSchedule = true;
 	}
-	function r() {
-		return (
-			navigator.userAgent.includes('Node.js') ||
-			navigator.userAgent.includes('jsdom')
-		);
+	function setReactivityEngine(engine) {
+		reactive = engine.reactive;
+		release = engine.release;
+		effect = (callback) =>
+			engine.effect(callback, {
+				scheduler: (task) => {
+					if (shouldSchedule) {
+						scheduler(task);
+					} else {
+						task();
+					}
+				}
+			});
+		raw = engine.raw;
 	}
-	function s(e, t) {
-		return e == t;
+	function overrideEffect(override) {
+		effect = override;
 	}
-	function o(e, t) {
-		'template' !== e.tagName.toLowerCase()
-			? console.warn(
-					`Alpine: [${t}] directive should only be added to <template> tags. See https://github.com/alpinejs/alpine#${t}`
-			  )
-			: 1 !== e.content.childElementCount &&
-			  console.warn(
-					`Alpine: <template> tag with [${t}] encountered with an unexpected number of root elements. Make sure <template> has a single root element. `
-			  );
-	}
-	function a(e) {
-		return e.toLowerCase().replace(/-(\w)/g, (e, t) => t.toUpperCase());
-	}
-	function l(e, t) {
-		if (!1 === t(e)) return;
-		let n = e.firstElementChild;
-		for (; n; ) l(n, t), (n = n.nextElementSibling);
-	}
-	function c(e, t) {
-		var n;
-		return function () {
-			var i = this,
-				r = arguments,
-				s = function () {
-					(n = null), e.apply(i, r);
+	function elementBoundEffect(el) {
+		let cleanup2 = () => {};
+		let wrappedEffect = (callback) => {
+			let effectReference = effect(callback);
+			if (!el._x_effects) {
+				el._x_effects = new Set();
+				el._x_runEffects = () => {
+					el._x_effects.forEach((i) => i());
 				};
-			clearTimeout(n), (n = setTimeout(s, t));
+			}
+			el._x_effects.add(effectReference);
+			cleanup2 = () => {
+				if (effectReference === void 0) return;
+				el._x_effects.delete(effectReference);
+				release(effectReference);
+			};
+		};
+		return [
+			wrappedEffect,
+			() => {
+				cleanup2();
+			}
+		];
+	}
+
+	// packages/alpinejs/src/mutation.js
+	var onAttributeRemoveds = new WeakMap();
+	var onAttributeAddeds = [];
+	var onElRemovedByEl = new WeakMap();
+	var onElRemoveds = [];
+	var onElAddeds = [];
+	function onElAdded(callback) {
+		onElAddeds.push(callback);
+	}
+	function onElRemoved(el, callback) {
+		if (typeof el === 'function' && callback === void 0) {
+			onElRemoveds.push(el);
+		} else {
+			if (!onElRemovedByEl.has(el)) onElRemovedByEl.set(el, []);
+			onElRemovedByEl.get(el).push(callback);
+		}
+	}
+	function onAttributesAdded(callback) {
+		onAttributeAddeds.push(callback);
+	}
+	function onAttributeRemoved(el, name, callback) {
+		if (!onAttributeRemoveds.has(el)) onAttributeRemoveds.set(el, {});
+		if (!onAttributeRemoveds.get(el)[name]) onAttributeRemoveds.get(el)[name] = [];
+		onAttributeRemoveds.get(el)[name].push(callback);
+	}
+	var observer = new MutationObserver(onMutate);
+	var currentlyObserving = false;
+	function startObservingMutations() {
+		observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
+		currentlyObserving = true;
+	}
+	function stopObservingMutations() {
+		observer.disconnect();
+		currentlyObserving = false;
+	}
+	var recordQueue = [];
+	var willProcessRecordQueue = false;
+	function flushObserver() {
+		recordQueue = recordQueue.concat(observer.takeRecords());
+		if (recordQueue.length && !willProcessRecordQueue) {
+			willProcessRecordQueue = true;
+			queueMicrotask(() => {
+				processRecordQueue();
+				willProcessRecordQueue = false;
+			});
+		}
+	}
+	function processRecordQueue() {
+		onMutate(recordQueue);
+		recordQueue.length = 0;
+	}
+	function mutateDom(callback) {
+		if (!currentlyObserving) return callback();
+		flushObserver();
+		stopObservingMutations();
+		let result = callback();
+		startObservingMutations();
+		return result;
+	}
+	function onMutate(mutations) {
+		let addedNodes = [];
+		let removedNodes = [];
+		let addedAttributes = new Map();
+		let removedAttributes = new Map();
+		for (let i = 0; i < mutations.length; i++) {
+			if (mutations[i].target._x_ignoreMutationObserver) continue;
+			if (mutations[i].type === 'childList') {
+				mutations[i].addedNodes.forEach((node) => node.nodeType === 1 && addedNodes.push(node));
+				mutations[i].removedNodes.forEach((node) => node.nodeType === 1 && removedNodes.push(node));
+			}
+			if (mutations[i].type === 'attributes') {
+				let el = mutations[i].target;
+				let name = mutations[i].attributeName;
+				let oldValue = mutations[i].oldValue;
+				let add2 = () => {
+					if (!addedAttributes.has(el)) addedAttributes.set(el, []);
+					addedAttributes.get(el).push({ name, value: el.getAttribute(name) });
+				};
+				let remove = () => {
+					if (!removedAttributes.has(el)) removedAttributes.set(el, []);
+					removedAttributes.get(el).push(name);
+				};
+				if (el.hasAttribute(name) && oldValue === null) {
+					add2();
+				} else if (el.hasAttribute(name)) {
+					remove();
+					add2();
+				} else {
+					remove();
+				}
+			}
+		}
+		removedAttributes.forEach((attrs, el) => {
+			if (onAttributeRemoveds.get(el)) {
+				attrs.forEach((name) => {
+					if (onAttributeRemoveds.get(el)[name]) {
+						onAttributeRemoveds.get(el)[name].forEach((i) => i());
+					}
+				});
+			}
+		});
+		addedAttributes.forEach((attrs, el) => {
+			onAttributeAddeds.forEach((i) => i(el, attrs));
+		});
+		for (let node of addedNodes) {
+			if (removedNodes.includes(node)) continue;
+			onElAddeds.forEach((i) => i(node));
+		}
+		for (let node of removedNodes) {
+			if (addedNodes.includes(node)) continue;
+			if (onAttributeRemoveds.has(node)) {
+				Object.entries(onAttributeRemoveds.get(node)).forEach(([key, value]) => {
+					value.forEach((i) => i());
+				});
+				onAttributeRemoveds.delete(node);
+			}
+			if (onElRemovedByEl.has(node)) {
+				onElRemovedByEl.get(node).forEach((i) => i());
+				onElRemovedByEl.delete(node);
+			}
+			onElRemoveds.forEach((i) => i(node));
+		}
+		addedNodes = null;
+		removedNodes = null;
+		addedAttributes = null;
+		removedAttributes = null;
+	}
+
+	// packages/alpinejs/src/scope.js
+	function addScopeToNode(node, data2, referenceNode) {
+		node._x_dataStack = [data2, ...closestDataStack(referenceNode || node)];
+		return () => {
+			node._x_dataStack = node._x_dataStack.filter((i) => i !== data2);
 		};
 	}
-	const u = (e, t, n) => {
-		if (
-			(console.warn(
-				`Alpine Error: "${n}"\n\nExpression: "${t}"\nElement:`,
-				e
-			),
-			!r())
-		)
-			throw (Object.assign(n, { el: e, expression: t }), n);
-	};
-	function d(e, { el: t, expression: n }) {
-		try {
-			const i = e();
-			return i instanceof Promise ? i.catch((e) => u(t, n, e)) : i;
-		} catch (e) {
-			u(t, n, e);
-		}
+	function refreshScope(element, scope) {
+		let existingScope = element._x_dataStack[0];
+		Object.entries(scope).forEach(([key, value]) => {
+			existingScope[key] = value;
+		});
 	}
-	function f(e, t, n, i = {}) {
-		return d(
-			() =>
-				'function' == typeof t
-					? t.call(n)
-					: new Function(
-							['$data', ...Object.keys(i)],
-							`var __alpine_result; with($data) { __alpine_result = ${t} }; return __alpine_result`
-					  )(n, ...Object.values(i)),
-			{ el: e, expression: t }
+	function closestDataStack(node) {
+		if (node._x_dataStack) return node._x_dataStack;
+		if (node instanceof ShadowRoot) {
+			return closestDataStack(node.host);
+		}
+		if (!node.parentNode) {
+			return [];
+		}
+		return closestDataStack(node.parentNode);
+	}
+	function mergeProxies(objects) {
+		return new Proxy(
+			{},
+			{
+				ownKeys: () => {
+					return Array.from(new Set(objects.flatMap((i) => Object.keys(i))));
+				},
+				has: (target, name) => {
+					return objects.some((obj) => obj.hasOwnProperty(name));
+				},
+				get: (target, name) => {
+					return (objects.find((obj) => obj.hasOwnProperty(name)) || {})[name];
+				},
+				set: (target, name, value) => {
+					let closestObjectWithKey = objects.find((obj) => obj.hasOwnProperty(name));
+					if (closestObjectWithKey) {
+						closestObjectWithKey[name] = value;
+					} else {
+						objects[objects.length - 1][name] = value;
+					}
+					return true;
+				}
+			}
 		);
 	}
-	const m = /^x-(on|bind|data|text|html|model|if|for|show|cloak|transition|ref|spread)\b/;
-	function p(e) {
-		const t = y(e.name);
-		return m.test(t);
+
+	// packages/alpinejs/src/interceptor.js
+	function initInterceptors(data2) {
+		let isObject2 = (val) => typeof val === 'object' && !Array.isArray(val) && val !== null;
+		let recurse = (obj, basePath = '') => {
+			Object.entries(obj).forEach(([key, value]) => {
+				let path = basePath === '' ? key : `${basePath}.${key}`;
+				if (typeof value === 'object' && value !== null && value._x_interceptor) {
+					obj[key] = value.initialize(data2, path, key);
+				} else {
+					if (isObject2(value) && value !== obj && !(value instanceof Element)) {
+						recurse(value, path);
+					}
+				}
+			});
+		};
+		return recurse(data2);
 	}
-	function h(e, t, n) {
-		let i = Array.from(e.attributes).filter(p).map(v),
-			r = i.filter((e) => 'spread' === e.type)[0];
-		if (r) {
-			let n = f(e, r.expression, t.$data);
-			i = i.concat(
-				Object.entries(n).map(([e, t]) => v({ name: e, value: t }))
+	function interceptor(callback, mutateObj = () => {}) {
+		let obj = {
+			initialValue: void 0,
+			_x_interceptor: true,
+			initialize(data2, path, key) {
+				return callback(
+					this.initialValue,
+					() => get(data2, path),
+					(value) => set(data2, path, value),
+					path,
+					key
+				);
+			}
+		};
+		mutateObj(obj);
+		return (initialValue) => {
+			if (typeof initialValue === 'object' && initialValue !== null && initialValue._x_interceptor) {
+				let initialize = obj.initialize.bind(obj);
+				obj.initialize = (data2, path, key) => {
+					let innerValue = initialValue.initialize(data2, path, key);
+					obj.initialValue = innerValue;
+					return initialize(data2, path, key);
+				};
+			} else {
+				obj.initialValue = initialValue;
+			}
+			return obj;
+		};
+	}
+	function get(obj, path) {
+		return path.split('.').reduce((carry, segment) => carry[segment], obj);
+	}
+	function set(obj, path, value) {
+		if (typeof path === 'string') path = path.split('.');
+		if (path.length === 1) obj[path[0]] = value;
+		else if (path.length === 0) throw error;
+		else {
+			if (obj[path[0]]) return set(obj[path[0]], path.slice(1), value);
+			else {
+				obj[path[0]] = {};
+				return set(obj[path[0]], path.slice(1), value);
+			}
+		}
+	}
+
+	// packages/alpinejs/src/magics.js
+	var magics = {};
+	function magic(name, callback) {
+		magics[name] = callback;
+	}
+	function injectMagics(obj, el) {
+		Object.entries(magics).forEach(([name, callback]) => {
+			Object.defineProperty(obj, `$${name}`, {
+				get() {
+					return callback(el, { Alpine: alpine_default, interceptor });
+				},
+				enumerable: false
+			});
+		});
+		return obj;
+	}
+
+	// packages/alpinejs/src/evaluator.js
+	function evaluate(el, expression, extras = {}) {
+		let result;
+		evaluateLater(el, expression)((value) => (result = value), extras);
+		return result;
+	}
+	function evaluateLater(...args) {
+		return theEvaluatorFunction(...args);
+	}
+	var theEvaluatorFunction = normalEvaluator;
+	function setEvaluator(newEvaluator) {
+		theEvaluatorFunction = newEvaluator;
+	}
+	function normalEvaluator(el, expression) {
+		let overriddenMagics = {};
+		injectMagics(overriddenMagics, el);
+		let dataStack = [overriddenMagics, ...closestDataStack(el)];
+		if (typeof expression === 'function') {
+			return generateEvaluatorFromFunction(dataStack, expression);
+		}
+		let evaluator = generateEvaluatorFromString(dataStack, expression);
+		return tryCatch.bind(null, el, expression, evaluator);
+	}
+	function generateEvaluatorFromFunction(dataStack, func) {
+		return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
+			let result = func.apply(mergeProxies([scope, ...dataStack]), params);
+			runIfTypeOfFunction(receiver, result);
+		};
+	}
+	var evaluatorMemo = {};
+	function generateFunctionFromString(expression) {
+		if (evaluatorMemo[expression]) {
+			return evaluatorMemo[expression];
+		}
+		let AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+		let rightSideSafeExpression =
+			/^[\n\s]*if.*\(.*\)/.test(expression) || /^(let|const)/.test(expression)
+				? `(() => { ${expression} })()`
+				: expression;
+		let func = new AsyncFunction(
+			['__self', 'scope'],
+			`with (scope) { __self.result = ${rightSideSafeExpression} }; __self.finished = true; return __self.result;`
+		);
+		evaluatorMemo[expression] = func;
+		return func;
+	}
+	function generateEvaluatorFromString(dataStack, expression) {
+		let func = generateFunctionFromString(expression);
+		return (receiver = () => {}, { scope = {}, params = [] } = {}) => {
+			func.result = void 0;
+			func.finished = false;
+			let completeScope = mergeProxies([scope, ...dataStack]);
+			let promise = func(func, completeScope);
+			if (func.finished) {
+				runIfTypeOfFunction(receiver, func.result, completeScope, params);
+			} else {
+				promise.then((result) => {
+					runIfTypeOfFunction(receiver, result, completeScope, params);
+				});
+			}
+		};
+	}
+	function runIfTypeOfFunction(receiver, value, scope, params) {
+		if (typeof value === 'function') {
+			let result = value.apply(scope, params);
+			if (result instanceof Promise) {
+				result.then((i) => runIfTypeOfFunction(receiver, i, scope, params));
+			} else {
+				receiver(result);
+			}
+		} else {
+			receiver(value);
+		}
+	}
+	function tryCatch(el, expression, callback, ...args) {
+		try {
+			return callback(...args);
+		} catch (e) {
+			console.warn(
+				`Alpine Expression Error: ${e.message}
+
+  Expression: "${expression}"
+
+  `,
+				el
+			);
+			throw e;
+		}
+	}
+
+	// packages/alpinejs/src/directives.js
+	var prefixAsString = 'x-';
+	function prefix(subject = '') {
+		return prefixAsString + subject;
+	}
+	function setPrefix(newPrefix) {
+		prefixAsString = newPrefix;
+	}
+	var directiveHandlers = {};
+	function directive(name, callback) {
+		directiveHandlers[name] = callback;
+	}
+	function directives(el, attributes, originalAttributeOverride) {
+		let transformedAttributeMap = {};
+		let directives2 = Array.from(attributes)
+			.map(toTransformedAttributes((newName, oldName) => (transformedAttributeMap[newName] = oldName)))
+			.filter(outNonAlpineAttributes)
+			.map(toParsedDirectives(transformedAttributeMap, originalAttributeOverride))
+			.sort(byPriority);
+		return directives2.map((directive2) => {
+			return getDirectiveHandler(el, directive2);
+		});
+	}
+	var isDeferringHandlers = false;
+	var directiveHandlerStack = [];
+	function deferHandlingDirectives(callback) {
+		isDeferringHandlers = true;
+		let flushHandlers = () => {
+			while (directiveHandlerStack.length) directiveHandlerStack.shift()();
+		};
+		let stopDeferring = () => {
+			isDeferringHandlers = false;
+			flushHandlers();
+		};
+		callback(flushHandlers);
+		stopDeferring();
+	}
+	function getDirectiveHandler(el, directive2) {
+		let noop = () => {};
+		let handler3 = directiveHandlers[directive2.type] || noop;
+		let cleanups = [];
+		let cleanup2 = (callback) => cleanups.push(callback);
+		let [effect3, cleanupEffect] = elementBoundEffect(el);
+		cleanups.push(cleanupEffect);
+		let utilities = {
+			Alpine: alpine_default,
+			effect: effect3,
+			cleanup: cleanup2,
+			evaluateLater: evaluateLater.bind(evaluateLater, el),
+			evaluate: evaluate.bind(evaluate, el)
+		};
+		let doCleanup = () => cleanups.forEach((i) => i());
+		onAttributeRemoved(el, directive2.original, doCleanup);
+		let fullHandler = () => {
+			if (el._x_ignore || el._x_ignoreSelf) return;
+			handler3.inline && handler3.inline(el, directive2, utilities);
+			handler3 = handler3.bind(handler3, el, directive2, utilities);
+			isDeferringHandlers ? directiveHandlerStack.push(handler3) : handler3();
+		};
+		fullHandler.runCleanups = doCleanup;
+		return fullHandler;
+	}
+	var startingWith =
+		(subject, replacement) =>
+		({ name, value }) => {
+			if (name.startsWith(subject)) name = name.replace(subject, replacement);
+			return { name, value };
+		};
+	var into = (i) => i;
+	function toTransformedAttributes(callback) {
+		return ({ name, value }) => {
+			let { name: newName, value: newValue } = attributeTransformers.reduce(
+				(carry, transform) => {
+					return transform(carry);
+				},
+				{ name, value }
+			);
+			if (newName !== name) callback(newName, name);
+			return { name: newName, value: newValue };
+		};
+	}
+	var attributeTransformers = [];
+	function mapAttributes(callback) {
+		attributeTransformers.push(callback);
+	}
+	function outNonAlpineAttributes({ name }) {
+		return alpineAttributeRegex().test(name);
+	}
+	var alpineAttributeRegex = () => new RegExp(`^${prefixAsString}([^:^.]+)\\b`);
+	function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
+		return ({ name, value }) => {
+			let typeMatch = name.match(alpineAttributeRegex());
+			let valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/);
+			let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
+			let original = originalAttributeOverride || transformedAttributeMap[name] || name;
+			return {
+				type: typeMatch ? typeMatch[1] : null,
+				value: valueMatch ? valueMatch[1] : null,
+				modifiers: modifiers.map((i) => i.replace('.', '')),
+				expression: value,
+				original
+			};
+		};
+	}
+	var DEFAULT = 'DEFAULT';
+	var directiveOrder = [
+		'ignore',
+		'ref',
+		'data',
+		'bind',
+		'init',
+		'for',
+		'model',
+		'transition',
+		'show',
+		'if',
+		DEFAULT,
+		'element'
+	];
+	function byPriority(a, b) {
+		let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type;
+		let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type;
+		return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+	}
+
+	// packages/alpinejs/src/utils/dispatch.js
+	function dispatch(el, name, detail = {}) {
+		el.dispatchEvent(
+			new CustomEvent(name, {
+				detail,
+				bubbles: true,
+				composed: true,
+				cancelable: true
+			})
+		);
+	}
+
+	// packages/alpinejs/src/nextTick.js
+	var tickStack = [];
+	var isHolding = false;
+	function nextTick(callback) {
+		tickStack.push(callback);
+		queueMicrotask(() => {
+			isHolding ||
+				setTimeout(() => {
+					releaseNextTicks();
+				});
+		});
+	}
+	function releaseNextTicks() {
+		isHolding = false;
+		while (tickStack.length) tickStack.shift()();
+	}
+	function holdNextTicks() {
+		isHolding = true;
+	}
+
+	// packages/alpinejs/src/utils/walk.js
+	function walk(el, callback) {
+		if (el instanceof ShadowRoot) {
+			Array.from(el.children).forEach((el2) => walk(el2, callback));
+			return;
+		}
+		let skip = false;
+		callback(el, () => (skip = true));
+		if (skip) return;
+		let node = el.firstElementChild;
+		while (node) {
+			walk(node, callback, false);
+			node = node.nextElementSibling;
+		}
+	}
+
+	// packages/alpinejs/src/utils/warn.js
+	function warn(message, ...args) {
+		console.warn(`Alpine Warning: ${message}`, ...args);
+	}
+
+	// packages/alpinejs/src/lifecycle.js
+	function start() {
+		if (!document.body)
+			warn(
+				"Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine's `<script>` tag?"
+			);
+		dispatch(document, 'alpine:initializing');
+		startObservingMutations();
+		onElAdded((el) => initTree(el, walk));
+		onElRemoved((el) => nextTick(() => destroyTree(el)));
+		onAttributesAdded((el, attrs) => {
+			directives(el, attrs).forEach((handle) => handle());
+		});
+		let outNestedComponents = (el) => !closestRoot(el.parentNode || closestRoot(el));
+		Array.from(document.querySelectorAll(rootSelectors()))
+			.filter(outNestedComponents)
+			.forEach((el) => {
+				initTree(el);
+			});
+		dispatch(document, 'alpine:initialized');
+	}
+	var rootSelectorCallbacks = [];
+	function rootSelectors() {
+		return rootSelectorCallbacks.map((fn) => fn());
+	}
+	function addRootSelector(selectorCallback) {
+		rootSelectorCallbacks.push(selectorCallback);
+	}
+	function closestRoot(el) {
+		if (rootSelectors().some((selector) => el.matches(selector))) return el;
+		if (!el.parentElement) return;
+		return closestRoot(el.parentElement);
+	}
+	function isRoot(el) {
+		return rootSelectors().some((selector) => el.matches(selector));
+	}
+	function initTree(el, walker = walk) {
+		deferHandlingDirectives(() => {
+			walker(el, (el2, skip) => {
+				directives(el2, el2.attributes).forEach((handle) => handle());
+				el2._x_ignore && skip();
+			});
+		});
+	}
+	var onDestroys = new WeakMap();
+	function destroyTree(root) {
+		walk(root, (el) => {
+			let callbacks = onDestroys.get(el);
+			callbacks && callbacks.forEach((callback) => callback());
+			onDestroys.delete(el);
+		});
+	}
+
+	// packages/alpinejs/src/plugin.js
+	function plugin(callback) {
+		callback(alpine_default);
+	}
+
+	// packages/alpinejs/src/store.js
+	var stores = {};
+	var isReactive = false;
+	function store(name, value) {
+		if (!isReactive) {
+			stores = reactive(stores);
+			isReactive = true;
+		}
+		if (value === void 0) {
+			return stores[name];
+		}
+		if (
+			typeof value === 'object' &&
+			value !== null &&
+			value.hasOwnProperty('init') &&
+			typeof value.init === 'function'
+		) {
+			value.init();
+		}
+		stores[name] = value;
+	}
+	function getStores() {
+		return stores;
+	}
+
+	// packages/alpinejs/src/clone.js
+	var isCloning = false;
+	function skipDuringClone(callback) {
+		return (...args) => isCloning || callback(...args);
+	}
+	function clone(oldEl, newEl) {
+		newEl._x_dataStack = oldEl._x_dataStack;
+		isCloning = true;
+		dontRegisterReactiveSideEffects(() => {
+			cloneTree(newEl);
+		});
+		isCloning = false;
+	}
+	function cloneTree(el) {
+		let hasRunThroughFirstEl = false;
+		let shallowWalker = (el2, callback) => {
+			walk(el2, (el3, skip) => {
+				if (hasRunThroughFirstEl && isRoot(el3)) return skip();
+				hasRunThroughFirstEl = true;
+				callback(el3, skip);
+			});
+		};
+		initTree(el, shallowWalker);
+	}
+	function dontRegisterReactiveSideEffects(callback) {
+		let cache = effect;
+		overrideEffect((callback2, el) => {
+			let storedEffect = cache(callback2);
+			release(storedEffect);
+			return () => {};
+		});
+		callback();
+		overrideEffect(cache);
+	}
+
+	// packages/alpinejs/src/datas.js
+	var datas = {};
+	function data(name, callback) {
+		datas[name] = callback;
+	}
+	function getNamedDataProvider(name) {
+		return datas[name];
+	}
+
+	// packages/alpinejs/src/alpine.js
+	var Alpine = {
+		get reactive() {
+			return reactive;
+		},
+		get release() {
+			return release;
+		},
+		get effect() {
+			return effect;
+		},
+		get raw() {
+			return raw;
+		},
+		version: '3.0.6',
+		disableEffectScheduling,
+		setReactivityEngine,
+		addRootSelector,
+		mapAttributes,
+		evaluateLater,
+		setEvaluator,
+		closestRoot,
+		interceptor,
+		mutateDom,
+		directive,
+		evaluate,
+		nextTick,
+		prefix: setPrefix,
+		plugin,
+		magic,
+		store,
+		start,
+		clone,
+		data
+	};
+	var alpine_default = Alpine;
+
+	// node_modules/@vue/shared/dist/shared.esm-bundler.js
+	function makeMap(str, expectsLowerCase) {
+		const map = Object.create(null);
+		const list = str.split(',');
+		for (let i = 0; i < list.length; i++) {
+			map[list[i]] = true;
+		}
+		return expectsLowerCase ? (val) => !!map[val.toLowerCase()] : (val) => !!map[val];
+	}
+	var PatchFlagNames = {
+		[1]: `TEXT`,
+		[2]: `CLASS`,
+		[4]: `STYLE`,
+		[8]: `PROPS`,
+		[16]: `FULL_PROPS`,
+		[32]: `HYDRATE_EVENTS`,
+		[64]: `STABLE_FRAGMENT`,
+		[128]: `KEYED_FRAGMENT`,
+		[256]: `UNKEYED_FRAGMENT`,
+		[512]: `NEED_PATCH`,
+		[1024]: `DYNAMIC_SLOTS`,
+		[2048]: `DEV_ROOT_FRAGMENT`,
+		[-1]: `HOISTED`,
+		[-2]: `BAIL`
+	};
+	var slotFlagsText = {
+		[1]: 'STABLE',
+		[2]: 'DYNAMIC',
+		[3]: 'FORWARDED'
+	};
+	var specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
+	var isBooleanAttr = /* @__PURE__ */ makeMap(
+		specialBooleanAttrs +
+			`,async,autofocus,autoplay,controls,default,defer,disabled,hidden,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected`
+	);
+	var EMPTY_OBJ = true ? Object.freeze({}) : {};
+	var EMPTY_ARR = true ? Object.freeze([]) : [];
+	var extend = Object.assign;
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
+	var hasOwn = (val, key) => hasOwnProperty.call(val, key);
+	var isArray = Array.isArray;
+	var isMap = (val) => toTypeString(val) === '[object Map]';
+	var isString = (val) => typeof val === 'string';
+	var isSymbol = (val) => typeof val === 'symbol';
+	var isObject = (val) => val !== null && typeof val === 'object';
+	var objectToString = Object.prototype.toString;
+	var toTypeString = (value) => objectToString.call(value);
+	var toRawType = (value) => {
+		return toTypeString(value).slice(8, -1);
+	};
+	var isIntegerKey = (key) => isString(key) && key !== 'NaN' && key[0] !== '-' && '' + parseInt(key, 10) === key;
+	var cacheStringFunction = (fn) => {
+		const cache = Object.create(null);
+		return (str) => {
+			const hit = cache[str];
+			return hit || (cache[str] = fn(str));
+		};
+	};
+	var camelizeRE = /-(\w)/g;
+	var camelize = cacheStringFunction((str) => {
+		return str.replace(camelizeRE, (_, c) => (c ? c.toUpperCase() : ''));
+	});
+	var hyphenateRE = /\B([A-Z])/g;
+	var hyphenate = cacheStringFunction((str) => str.replace(hyphenateRE, '-$1').toLowerCase());
+	var capitalize = cacheStringFunction((str) => str.charAt(0).toUpperCase() + str.slice(1));
+	var toHandlerKey = cacheStringFunction((str) => (str ? `on${capitalize(str)}` : ``));
+	var hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
+
+	// node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js
+	var targetMap = new WeakMap();
+	var effectStack = [];
+	var activeEffect;
+	var ITERATE_KEY = Symbol(true ? 'iterate' : '');
+	var MAP_KEY_ITERATE_KEY = Symbol(true ? 'Map key iterate' : '');
+	function isEffect(fn) {
+		return fn && fn._isEffect === true;
+	}
+	function effect2(fn, options = EMPTY_OBJ) {
+		if (isEffect(fn)) {
+			fn = fn.raw;
+		}
+		const effect3 = createReactiveEffect(fn, options);
+		if (!options.lazy) {
+			effect3();
+		}
+		return effect3;
+	}
+	function stop(effect3) {
+		if (effect3.active) {
+			cleanup(effect3);
+			if (effect3.options.onStop) {
+				effect3.options.onStop();
+			}
+			effect3.active = false;
+		}
+	}
+	var uid = 0;
+	function createReactiveEffect(fn, options) {
+		const effect3 = function reactiveEffect() {
+			if (!effect3.active) {
+				return options.scheduler ? void 0 : fn();
+			}
+			if (!effectStack.includes(effect3)) {
+				cleanup(effect3);
+				try {
+					enableTracking();
+					effectStack.push(effect3);
+					activeEffect = effect3;
+					return fn();
+				} finally {
+					effectStack.pop();
+					resetTracking();
+					activeEffect = effectStack[effectStack.length - 1];
+				}
+			}
+		};
+		effect3.id = uid++;
+		effect3.allowRecurse = !!options.allowRecurse;
+		effect3._isEffect = true;
+		effect3.active = true;
+		effect3.raw = fn;
+		effect3.deps = [];
+		effect3.options = options;
+		return effect3;
+	}
+	function cleanup(effect3) {
+		const { deps } = effect3;
+		if (deps.length) {
+			for (let i = 0; i < deps.length; i++) {
+				deps[i].delete(effect3);
+			}
+			deps.length = 0;
+		}
+	}
+	var shouldTrack = true;
+	var trackStack = [];
+	function pauseTracking() {
+		trackStack.push(shouldTrack);
+		shouldTrack = false;
+	}
+	function enableTracking() {
+		trackStack.push(shouldTrack);
+		shouldTrack = true;
+	}
+	function resetTracking() {
+		const last = trackStack.pop();
+		shouldTrack = last === void 0 ? true : last;
+	}
+	function track(target, type, key) {
+		if (!shouldTrack || activeEffect === void 0) {
+			return;
+		}
+		let depsMap = targetMap.get(target);
+		if (!depsMap) {
+			targetMap.set(target, (depsMap = new Map()));
+		}
+		let dep = depsMap.get(key);
+		if (!dep) {
+			depsMap.set(key, (dep = new Set()));
+		}
+		if (!dep.has(activeEffect)) {
+			dep.add(activeEffect);
+			activeEffect.deps.push(dep);
+			if (activeEffect.options.onTrack) {
+				activeEffect.options.onTrack({
+					effect: activeEffect,
+					target,
+					type,
+					key
+				});
+			}
+		}
+	}
+	function trigger(target, type, key, newValue, oldValue, oldTarget) {
+		const depsMap = targetMap.get(target);
+		if (!depsMap) {
+			return;
+		}
+		const effects = new Set();
+		const add2 = (effectsToAdd) => {
+			if (effectsToAdd) {
+				effectsToAdd.forEach((effect3) => {
+					if (effect3 !== activeEffect || effect3.allowRecurse) {
+						effects.add(effect3);
+					}
+				});
+			}
+		};
+		if (type === 'clear') {
+			depsMap.forEach(add2);
+		} else if (key === 'length' && isArray(target)) {
+			depsMap.forEach((dep, key2) => {
+				if (key2 === 'length' || key2 >= newValue) {
+					add2(dep);
+				}
+			});
+		} else {
+			if (key !== void 0) {
+				add2(depsMap.get(key));
+			}
+			switch (type) {
+				case 'add':
+					if (!isArray(target)) {
+						add2(depsMap.get(ITERATE_KEY));
+						if (isMap(target)) {
+							add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+						}
+					} else if (isIntegerKey(key)) {
+						add2(depsMap.get('length'));
+					}
+					break;
+				case 'delete':
+					if (!isArray(target)) {
+						add2(depsMap.get(ITERATE_KEY));
+						if (isMap(target)) {
+							add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+						}
+					}
+					break;
+				case 'set':
+					if (isMap(target)) {
+						add2(depsMap.get(ITERATE_KEY));
+					}
+					break;
+			}
+		}
+		const run = (effect3) => {
+			if (effect3.options.onTrigger) {
+				effect3.options.onTrigger({
+					effect: effect3,
+					target,
+					key,
+					type,
+					newValue,
+					oldValue,
+					oldTarget
+				});
+			}
+			if (effect3.options.scheduler) {
+				effect3.options.scheduler(effect3);
+			} else {
+				effect3();
+			}
+		};
+		effects.forEach(run);
+	}
+	var isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
+	var builtInSymbols = new Set(
+		Object.getOwnPropertyNames(Symbol)
+			.map((key) => Symbol[key])
+			.filter(isSymbol)
+	);
+	var get2 = /* @__PURE__ */ createGetter();
+	var shallowGet = /* @__PURE__ */ createGetter(false, true);
+	var readonlyGet = /* @__PURE__ */ createGetter(true);
+	var shallowReadonlyGet = /* @__PURE__ */ createGetter(true, true);
+	var arrayInstrumentations = {};
+	['includes', 'indexOf', 'lastIndexOf'].forEach((key) => {
+		const method = Array.prototype[key];
+		arrayInstrumentations[key] = function (...args) {
+			const arr = toRaw(this);
+			for (let i = 0, l = this.length; i < l; i++) {
+				track(arr, 'get', i + '');
+			}
+			const res = method.apply(arr, args);
+			if (res === -1 || res === false) {
+				return method.apply(arr, args.map(toRaw));
+			} else {
+				return res;
+			}
+		};
+	});
+	['push', 'pop', 'shift', 'unshift', 'splice'].forEach((key) => {
+		const method = Array.prototype[key];
+		arrayInstrumentations[key] = function (...args) {
+			pauseTracking();
+			const res = method.apply(this, args);
+			resetTracking();
+			return res;
+		};
+	});
+	function createGetter(isReadonly = false, shallow = false) {
+		return function get3(target, key, receiver) {
+			if (key === '__v_isReactive') {
+				return !isReadonly;
+			} else if (key === '__v_isReadonly') {
+				return isReadonly;
+			} else if (
+				key === '__v_raw' &&
+				receiver ===
+					(isReadonly
+						? shallow
+							? shallowReadonlyMap
+							: readonlyMap
+						: shallow
+						? shallowReactiveMap
+						: reactiveMap
+					).get(target)
+			) {
+				return target;
+			}
+			const targetIsArray = isArray(target);
+			if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
+				return Reflect.get(arrayInstrumentations, key, receiver);
+			}
+			const res = Reflect.get(target, key, receiver);
+			if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
+				return res;
+			}
+			if (!isReadonly) {
+				track(target, 'get', key);
+			}
+			if (shallow) {
+				return res;
+			}
+			if (isRef(res)) {
+				const shouldUnwrap = !targetIsArray || !isIntegerKey(key);
+				return shouldUnwrap ? res.value : res;
+			}
+			if (isObject(res)) {
+				return isReadonly ? readonly(res) : reactive2(res);
+			}
+			return res;
+		};
+	}
+	var set2 = /* @__PURE__ */ createSetter();
+	var shallowSet = /* @__PURE__ */ createSetter(true);
+	function createSetter(shallow = false) {
+		return function set3(target, key, value, receiver) {
+			let oldValue = target[key];
+			if (!shallow) {
+				value = toRaw(value);
+				oldValue = toRaw(oldValue);
+				if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
+					oldValue.value = value;
+					return true;
+				}
+			}
+			const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
+			const result = Reflect.set(target, key, value, receiver);
+			if (target === toRaw(receiver)) {
+				if (!hadKey) {
+					trigger(target, 'add', key, value);
+				} else if (hasChanged(value, oldValue)) {
+					trigger(target, 'set', key, value, oldValue);
+				}
+			}
+			return result;
+		};
+	}
+	function deleteProperty(target, key) {
+		const hadKey = hasOwn(target, key);
+		const oldValue = target[key];
+		const result = Reflect.deleteProperty(target, key);
+		if (result && hadKey) {
+			trigger(target, 'delete', key, void 0, oldValue);
+		}
+		return result;
+	}
+	function has(target, key) {
+		const result = Reflect.has(target, key);
+		if (!isSymbol(key) || !builtInSymbols.has(key)) {
+			track(target, 'has', key);
+		}
+		return result;
+	}
+	function ownKeys(target) {
+		track(target, 'iterate', isArray(target) ? 'length' : ITERATE_KEY);
+		return Reflect.ownKeys(target);
+	}
+	var mutableHandlers = {
+		get: get2,
+		set: set2,
+		deleteProperty,
+		has,
+		ownKeys
+	};
+	var readonlyHandlers = {
+		get: readonlyGet,
+		set(target, key) {
+			if (true) {
+				console.warn(`Set operation on key "${String(key)}" failed: target is readonly.`, target);
+			}
+			return true;
+		},
+		deleteProperty(target, key) {
+			if (true) {
+				console.warn(`Delete operation on key "${String(key)}" failed: target is readonly.`, target);
+			}
+			return true;
+		}
+	};
+	var shallowReactiveHandlers = extend({}, mutableHandlers, {
+		get: shallowGet,
+		set: shallowSet
+	});
+	var shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+		get: shallowReadonlyGet
+	});
+	var toReactive = (value) => (isObject(value) ? reactive2(value) : value);
+	var toReadonly = (value) => (isObject(value) ? readonly(value) : value);
+	var toShallow = (value) => value;
+	var getProto = (v) => Reflect.getPrototypeOf(v);
+	function get$1(target, key, isReadonly = false, isShallow = false) {
+		target = target['__v_raw'];
+		const rawTarget = toRaw(target);
+		const rawKey = toRaw(key);
+		if (key !== rawKey) {
+			!isReadonly && track(rawTarget, 'get', key);
+		}
+		!isReadonly && track(rawTarget, 'get', rawKey);
+		const { has: has2 } = getProto(rawTarget);
+		const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+		if (has2.call(rawTarget, key)) {
+			return wrap(target.get(key));
+		} else if (has2.call(rawTarget, rawKey)) {
+			return wrap(target.get(rawKey));
+		}
+	}
+	function has$1(key, isReadonly = false) {
+		const target = this['__v_raw'];
+		const rawTarget = toRaw(target);
+		const rawKey = toRaw(key);
+		if (key !== rawKey) {
+			!isReadonly && track(rawTarget, 'has', key);
+		}
+		!isReadonly && track(rawTarget, 'has', rawKey);
+		return key === rawKey ? target.has(key) : target.has(key) || target.has(rawKey);
+	}
+	function size(target, isReadonly = false) {
+		target = target['__v_raw'];
+		!isReadonly && track(toRaw(target), 'iterate', ITERATE_KEY);
+		return Reflect.get(target, 'size', target);
+	}
+	function add(value) {
+		value = toRaw(value);
+		const target = toRaw(this);
+		const proto = getProto(target);
+		const hadKey = proto.has.call(target, value);
+		if (!hadKey) {
+			target.add(value);
+			trigger(target, 'add', value, value);
+		}
+		return this;
+	}
+	function set$1(key, value) {
+		value = toRaw(value);
+		const target = toRaw(this);
+		const { has: has2, get: get3 } = getProto(target);
+		let hadKey = has2.call(target, key);
+		if (!hadKey) {
+			key = toRaw(key);
+			hadKey = has2.call(target, key);
+		} else if (true) {
+			checkIdentityKeys(target, has2, key);
+		}
+		const oldValue = get3.call(target, key);
+		target.set(key, value);
+		if (!hadKey) {
+			trigger(target, 'add', key, value);
+		} else if (hasChanged(value, oldValue)) {
+			trigger(target, 'set', key, value, oldValue);
+		}
+		return this;
+	}
+	function deleteEntry(key) {
+		const target = toRaw(this);
+		const { has: has2, get: get3 } = getProto(target);
+		let hadKey = has2.call(target, key);
+		if (!hadKey) {
+			key = toRaw(key);
+			hadKey = has2.call(target, key);
+		} else if (true) {
+			checkIdentityKeys(target, has2, key);
+		}
+		const oldValue = get3 ? get3.call(target, key) : void 0;
+		const result = target.delete(key);
+		if (hadKey) {
+			trigger(target, 'delete', key, void 0, oldValue);
+		}
+		return result;
+	}
+	function clear() {
+		const target = toRaw(this);
+		const hadItems = target.size !== 0;
+		const oldTarget = true ? (isMap(target) ? new Map(target) : new Set(target)) : void 0;
+		const result = target.clear();
+		if (hadItems) {
+			trigger(target, 'clear', void 0, void 0, oldTarget);
+		}
+		return result;
+	}
+	function createForEach(isReadonly, isShallow) {
+		return function forEach(callback, thisArg) {
+			const observed = this;
+			const target = observed['__v_raw'];
+			const rawTarget = toRaw(target);
+			const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+			!isReadonly && track(rawTarget, 'iterate', ITERATE_KEY);
+			return target.forEach((value, key) => {
+				return callback.call(thisArg, wrap(value), wrap(key), observed);
+			});
+		};
+	}
+	function createIterableMethod(method, isReadonly, isShallow) {
+		return function (...args) {
+			const target = this['__v_raw'];
+			const rawTarget = toRaw(target);
+			const targetIsMap = isMap(rawTarget);
+			const isPair = method === 'entries' || (method === Symbol.iterator && targetIsMap);
+			const isKeyOnly = method === 'keys' && targetIsMap;
+			const innerIterator = target[method](...args);
+			const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+			!isReadonly && track(rawTarget, 'iterate', isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY);
+			return {
+				next() {
+					const { value, done } = innerIterator.next();
+					return done
+						? { value, done }
+						: {
+								value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
+								done
+						  };
+				},
+				[Symbol.iterator]() {
+					return this;
+				}
+			};
+		};
+	}
+	function createReadonlyMethod(type) {
+		return function (...args) {
+			if (true) {
+				const key = args[0] ? `on key "${args[0]}" ` : ``;
+				console.warn(`${capitalize(type)} operation ${key}failed: target is readonly.`, toRaw(this));
+			}
+			return type === 'delete' ? false : this;
+		};
+	}
+	var mutableInstrumentations = {
+		get(key) {
+			return get$1(this, key);
+		},
+		get size() {
+			return size(this);
+		},
+		has: has$1,
+		add,
+		set: set$1,
+		delete: deleteEntry,
+		clear,
+		forEach: createForEach(false, false)
+	};
+	var shallowInstrumentations = {
+		get(key) {
+			return get$1(this, key, false, true);
+		},
+		get size() {
+			return size(this);
+		},
+		has: has$1,
+		add,
+		set: set$1,
+		delete: deleteEntry,
+		clear,
+		forEach: createForEach(false, true)
+	};
+	var readonlyInstrumentations = {
+		get(key) {
+			return get$1(this, key, true);
+		},
+		get size() {
+			return size(this, true);
+		},
+		has(key) {
+			return has$1.call(this, key, true);
+		},
+		add: createReadonlyMethod('add'),
+		set: createReadonlyMethod('set'),
+		delete: createReadonlyMethod('delete'),
+		clear: createReadonlyMethod('clear'),
+		forEach: createForEach(true, false)
+	};
+	var shallowReadonlyInstrumentations = {
+		get(key) {
+			return get$1(this, key, true, true);
+		},
+		get size() {
+			return size(this, true);
+		},
+		has(key) {
+			return has$1.call(this, key, true);
+		},
+		add: createReadonlyMethod('add'),
+		set: createReadonlyMethod('set'),
+		delete: createReadonlyMethod('delete'),
+		clear: createReadonlyMethod('clear'),
+		forEach: createForEach(true, true)
+	};
+	var iteratorMethods = ['keys', 'values', 'entries', Symbol.iterator];
+	iteratorMethods.forEach((method) => {
+		mutableInstrumentations[method] = createIterableMethod(method, false, false);
+		readonlyInstrumentations[method] = createIterableMethod(method, true, false);
+		shallowInstrumentations[method] = createIterableMethod(method, false, true);
+		shallowReadonlyInstrumentations[method] = createIterableMethod(method, true, true);
+	});
+	function createInstrumentationGetter(isReadonly, shallow) {
+		const instrumentations = shallow
+			? isReadonly
+				? shallowReadonlyInstrumentations
+				: shallowInstrumentations
+			: isReadonly
+			? readonlyInstrumentations
+			: mutableInstrumentations;
+		return (target, key, receiver) => {
+			if (key === '__v_isReactive') {
+				return !isReadonly;
+			} else if (key === '__v_isReadonly') {
+				return isReadonly;
+			} else if (key === '__v_raw') {
+				return target;
+			}
+			return Reflect.get(
+				hasOwn(instrumentations, key) && key in target ? instrumentations : target,
+				key,
+				receiver
+			);
+		};
+	}
+	var mutableCollectionHandlers = {
+		get: createInstrumentationGetter(false, false)
+	};
+	var shallowCollectionHandlers = {
+		get: createInstrumentationGetter(false, true)
+	};
+	var readonlyCollectionHandlers = {
+		get: createInstrumentationGetter(true, false)
+	};
+	var shallowReadonlyCollectionHandlers = {
+		get: createInstrumentationGetter(true, true)
+	};
+	function checkIdentityKeys(target, has2, key) {
+		const rawKey = toRaw(key);
+		if (rawKey !== key && has2.call(target, rawKey)) {
+			const type = toRawType(target);
+			console.warn(
+				`Reactive ${type} contains both the raw and reactive versions of the same object${
+					type === `Map` ? ` as keys` : ``
+				}, which can lead to inconsistencies. Avoid differentiating between the raw and reactive versions of an object and only use the reactive version if possible.`
 			);
 		}
-		return n
-			? i.filter((e) => e.type === n)
-			: (function (e) {
-					let t = ['bind', 'model', 'show', 'catch-all'];
-					return e.sort((e, n) => {
-						let i = -1 === t.indexOf(e.type) ? 'catch-all' : e.type,
-							r = -1 === t.indexOf(n.type) ? 'catch-all' : n.type;
-						return t.indexOf(i) - t.indexOf(r);
-					});
-			  })(i);
 	}
-	function v({ name: e, value: t }) {
-		const n = y(e),
-			i = n.match(m),
-			r = n.match(/:([a-zA-Z0-9\-:]+)/),
-			s = n.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
-		return {
-			type: i ? i[1] : null,
-			value: r ? r[1] : null,
-			modifiers: s.map((e) => e.replace('.', '')),
-			expression: t
-		};
-	}
-	function y(e) {
-		return e.startsWith('@')
-			? e.replace('@', 'x-on:')
-			: e.startsWith(':')
-			? e.replace(':', 'x-bind:')
-			: e;
-	}
-	function b(e, t = Boolean) {
-		return e.split(' ').filter(t);
-	}
-	const g = 'in',
-		x = 'out',
-		_ = 'cancelled';
-	function w(e, t, n, i, r = !1) {
-		if (r) return t();
-		if (e.__x_transition && e.__x_transition.type === g) return;
-		const s = h(e, i, 'transition'),
-			o = h(e, i, 'show')[0];
-		if (o && o.modifiers.includes('transition')) {
-			let i = o.modifiers;
-			if (i.includes('out') && !i.includes('in')) return t();
-			const r = i.includes('in') && i.includes('out');
-			(i = r ? i.filter((e, t) => t < i.indexOf('out')) : i),
-				(function (e, t, n, i) {
-					const r = {
-						duration: O(t, 'duration', 150),
-						origin: O(t, 'origin', 'center'),
-						first: { opacity: 0, scale: O(t, 'scale', 95) },
-						second: { opacity: 1, scale: 100 }
-					};
-					k(e, t, n, () => {}, i, r, g);
-				})(e, i, t, n);
-		} else
-			s.some((e) =>
-				['enter', 'enter-start', 'enter-end'].includes(e.value)
-			)
-				? (function (e, t, n, i, r) {
-						const s = b(
-								A(
-									(
-										n.find((e) => 'enter' === e.value) || {
-											expression: ''
-										}
-									).expression,
-									e,
-									t
-								)
-							),
-							o = b(
-								A(
-									(
-										n.find(
-											(e) => 'enter-start' === e.value
-										) || { expression: '' }
-									).expression,
-									e,
-									t
-								)
-							),
-							a = b(
-								A(
-									(
-										n.find(
-											(e) => 'enter-end' === e.value
-										) || { expression: '' }
-									).expression,
-									e,
-									t
-								)
-							);
-						S(e, s, o, a, i, () => {}, g, r);
-				  })(e, i, s, t, n)
-				: t();
-	}
-	function E(e, t, n, i, r = !1) {
-		if (r) return t();
-		if (e.__x_transition && e.__x_transition.type === x) return;
-		const s = h(e, i, 'transition'),
-			o = h(e, i, 'show')[0];
-		if (o && o.modifiers.includes('transition')) {
-			let i = o.modifiers;
-			if (i.includes('in') && !i.includes('out')) return t();
-			const r = i.includes('in') && i.includes('out');
-			(i = r ? i.filter((e, t) => t > i.indexOf('out')) : i),
-				(function (e, t, n, i, r) {
-					const s = {
-						duration: n
-							? O(t, 'duration', 150)
-							: O(t, 'duration', 150) / 2,
-						origin: O(t, 'origin', 'center'),
-						first: { opacity: 1, scale: 100 },
-						second: { opacity: 0, scale: O(t, 'scale', 95) }
-					};
-					k(e, t, () => {}, i, r, s, x);
-				})(e, i, r, t, n);
-		} else
-			s.some((e) =>
-				['leave', 'leave-start', 'leave-end'].includes(e.value)
-			)
-				? (function (e, t, n, i, r) {
-						const s = b(
-								A(
-									(
-										n.find((e) => 'leave' === e.value) || {
-											expression: ''
-										}
-									).expression,
-									e,
-									t
-								)
-							),
-							o = b(
-								A(
-									(
-										n.find(
-											(e) => 'leave-start' === e.value
-										) || { expression: '' }
-									).expression,
-									e,
-									t
-								)
-							),
-							a = b(
-								A(
-									(
-										n.find(
-											(e) => 'leave-end' === e.value
-										) || { expression: '' }
-									).expression,
-									e,
-									t
-								)
-							);
-						S(e, s, o, a, () => {}, i, x, r);
-				  })(e, i, s, t, n)
-				: t();
-	}
-	function O(e, t, n) {
-		if (-1 === e.indexOf(t)) return n;
-		const i = e[e.indexOf(t) + 1];
-		if (!i) return n;
-		if ('scale' === t && !P(i)) return n;
-		if ('duration' === t) {
-			let e = i.match(/([0-9]+)ms/);
-			if (e) return e[1];
+	var reactiveMap = new WeakMap();
+	var shallowReactiveMap = new WeakMap();
+	var readonlyMap = new WeakMap();
+	var shallowReadonlyMap = new WeakMap();
+	function targetTypeMap(rawType) {
+		switch (rawType) {
+			case 'Object':
+			case 'Array':
+				return 1;
+			case 'Map':
+			case 'Set':
+			case 'WeakMap':
+			case 'WeakSet':
+				return 2;
+			default:
+				return 0;
 		}
-		return 'origin' === t &&
-			['top', 'right', 'left', 'center', 'bottom'].includes(
-				e[e.indexOf(t) + 2]
-			)
-			? [i, e[e.indexOf(t) + 2]].join(' ')
-			: i;
 	}
-	function k(e, t, n, i, r, s, o) {
-		e.__x_transition &&
-			e.__x_transition.cancel &&
-			e.__x_transition.cancel();
-		const a = e.style.opacity,
-			l = e.style.transform,
-			c = e.style.transformOrigin,
-			u = !t.includes('opacity') && !t.includes('scale'),
-			d = u || t.includes('opacity'),
-			f = u || t.includes('scale'),
-			m = {
-				start() {
-					d && (e.style.opacity = s.first.opacity),
-						f &&
-							(e.style.transform = `scale(${
-								s.first.scale / 100
-							})`);
-				},
-				during() {
-					f && (e.style.transformOrigin = s.origin),
-						(e.style.transitionProperty = [
-							d ? 'opacity' : '',
-							f ? 'transform' : ''
-						]
-							.join(' ')
-							.trim()),
-						(e.style.transitionDuration = s.duration / 1e3 + 's'),
-						(e.style.transitionTimingFunction =
-							'cubic-bezier(0.4, 0.0, 0.2, 1)');
-				},
-				show() {
-					n();
-				},
-				end() {
-					d && (e.style.opacity = s.second.opacity),
-						f &&
-							(e.style.transform = `scale(${
-								s.second.scale / 100
-							})`);
-				},
-				hide() {
-					i();
-				},
-				cleanup() {
-					d && (e.style.opacity = a),
-						f && (e.style.transform = l),
-						f && (e.style.transformOrigin = c),
-						(e.style.transitionProperty = null),
-						(e.style.transitionDuration = null),
-						(e.style.transitionTimingFunction = null);
-				}
+	function getTargetType(value) {
+		return value['__v_skip'] || !Object.isExtensible(value) ? 0 : targetTypeMap(toRawType(value));
+	}
+	function reactive2(target) {
+		if (target && target['__v_isReadonly']) {
+			return target;
+		}
+		return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers, reactiveMap);
+	}
+	function readonly(target) {
+		return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers, readonlyMap);
+	}
+	function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers, proxyMap) {
+		if (!isObject(target)) {
+			if (true) {
+				console.warn(`value cannot be made reactive: ${String(target)}`);
+			}
+			return target;
+		}
+		if (target['__v_raw'] && !(isReadonly && target['__v_isReactive'])) {
+			return target;
+		}
+		const existingProxy = proxyMap.get(target);
+		if (existingProxy) {
+			return existingProxy;
+		}
+		const targetType = getTargetType(target);
+		if (targetType === 0) {
+			return target;
+		}
+		const proxy = new Proxy(target, targetType === 2 ? collectionHandlers : baseHandlers);
+		proxyMap.set(target, proxy);
+		return proxy;
+	}
+	function toRaw(observed) {
+		return (observed && toRaw(observed['__v_raw'])) || observed;
+	}
+	function isRef(r) {
+		return Boolean(r && r.__v_isRef === true);
+	}
+
+	// packages/alpinejs/src/magics/$nextTick.js
+	magic('nextTick', () => nextTick);
+
+	// packages/alpinejs/src/magics/$dispatch.js
+	magic('dispatch', (el) => dispatch.bind(dispatch, el));
+
+	// packages/alpinejs/src/magics/$watch.js
+	magic('watch', (el) => (key, callback) => {
+		let evaluate2 = evaluateLater(el, key);
+		let firstTime = true;
+		let oldValue;
+		effect(() =>
+			evaluate2((value) => {
+				let div = document.createElement('div');
+				div.dataset.throwAway = value;
+				if (!firstTime) callback(value, oldValue);
+				oldValue = value;
+				firstTime = false;
+			})
+		);
+	});
+
+	// packages/alpinejs/src/magics/$store.js
+	magic('store', getStores);
+
+	// packages/alpinejs/src/magics/$refs.js
+	magic('refs', (el) => closestRoot(el)._x_refs || {});
+
+	// packages/alpinejs/src/magics/$el.js
+	magic('el', (el) => el);
+
+	// packages/alpinejs/src/utils/classes.js
+	function setClasses(el, value) {
+		if (Array.isArray(value)) {
+			return setClassesFromString(el, value.join(' '));
+		} else if (typeof value === 'object' && value !== null) {
+			return setClassesFromObject(el, value);
+		}
+		return setClassesFromString(el, value);
+	}
+	function setClassesFromString(el, classString) {
+		let split = (classString2) => classString2.split(' ').filter(Boolean);
+		let missingClasses = (classString2) =>
+			classString2
+				.split(' ')
+				.filter((i) => !el.classList.contains(i))
+				.filter(Boolean);
+		let addClassesAndReturnUndo = (classes) => {
+			el.classList.add(...classes);
+			return () => {
+				el.classList.remove(...classes);
 			};
-		$(e, m, o, r);
+		};
+		classString = classString === true ? (classString = '') : classString || '';
+		return addClassesAndReturnUndo(missingClasses(classString));
 	}
-	const A = (e, t, n) =>
-		'function' == typeof e ? n.evaluateReturnExpression(t, e) : e;
-	function S(e, t, n, i, r, s, o, a) {
-		e.__x_transition &&
-			e.__x_transition.cancel &&
-			e.__x_transition.cancel();
-		const l = e.__x_original_classes || [],
-			c = {
-				start() {
-					e.classList.add(...n);
-				},
-				during() {
-					e.classList.add(...t);
-				},
-				show() {
-					r();
-				},
-				end() {
-					e.classList.remove(...n.filter((e) => !l.includes(e))),
-						e.classList.add(...i);
-				},
-				hide() {
-					s();
-				},
-				cleanup() {
-					e.classList.remove(...t.filter((e) => !l.includes(e))),
-						e.classList.remove(...i.filter((e) => !l.includes(e)));
-				}
-			};
-		$(e, c, o, a);
-	}
-	function $(e, t, n, i) {
-		const r = C(() => {
-			t.hide(), e.isConnected && t.cleanup(), delete e.__x_transition;
+	function setClassesFromObject(el, classObject) {
+		let split = (classString) => classString.split(' ').filter(Boolean);
+		let forAdd = Object.entries(classObject)
+			.flatMap(([classString, bool]) => (bool ? split(classString) : false))
+			.filter(Boolean);
+		let forRemove = Object.entries(classObject)
+			.flatMap(([classString, bool]) => (!bool ? split(classString) : false))
+			.filter(Boolean);
+		let added = [];
+		let removed = [];
+		forAdd.forEach((i) => {
+			if (!el.classList.contains(i)) {
+				el.classList.add(i);
+				added.push(i);
+			}
 		});
-		(e.__x_transition = {
-			type: n,
-			cancel: C(() => {
-				i(_), r();
-			}),
-			finish: r,
-			nextFrame: null
-		}),
-			t.start(),
-			t.during(),
-			(e.__x_transition.nextFrame = requestAnimationFrame(() => {
-				let n =
-					1e3 *
-					Number(
-						getComputedStyle(e)
-							.transitionDuration.replace(/,.*/, '')
-							.replace('s', '')
-					);
-				0 === n &&
-					(n =
-						1e3 *
-						Number(
-							getComputedStyle(e).animationDuration.replace(
-								's',
-								''
-							)
-						)),
-					t.show(),
-					(e.__x_transition.nextFrame = requestAnimationFrame(() => {
-						t.end(), setTimeout(e.__x_transition.finish, n);
-					}));
-			}));
-	}
-	function P(e) {
-		return !Array.isArray(e) && !isNaN(e);
-	}
-	function C(e) {
-		let t = !1;
-		return function () {
-			t || ((t = !0), e.apply(this, arguments));
+		forRemove.forEach((i) => {
+			if (el.classList.contains(i)) {
+				el.classList.remove(i);
+				removed.push(i);
+			}
+		});
+		return () => {
+			added.forEach((i) => el.classList.remove(i));
+			removed.forEach((i) => el.classList.add(i));
 		};
 	}
-	function j(e, t, i, r, s) {
-		o(t, 'x-for');
-		let a = D(
-				'function' == typeof i ? e.evaluateReturnExpression(t, i) : i
-			),
-			l = (function (e, t, n, i) {
-				let r = h(t, e, 'if')[0];
-				if (r && !e.evaluateReturnExpression(t, r.expression))
-					return [];
-				let s = e.evaluateReturnExpression(t, n.items, i);
-				P(s) &&
-					s >= 0 &&
-					(s = Array.from(Array(s).keys(), (e) => e + 1));
-				return s;
-			})(e, t, a, s),
-			c = t;
-		l.forEach((i, o) => {
-			let u = (function (e, t, i, r, s) {
-					let o = s ? n({}, s) : {};
-					(o[e.item] = t), e.index && (o[e.index] = i);
-					e.collection && (o[e.collection] = r);
-					return o;
-				})(a, i, o, l, s()),
-				d = (function (e, t, n, i) {
-					let r = h(t, e, 'bind').filter((e) => 'key' === e.value)[0];
-					return r
-						? e.evaluateReturnExpression(t, r.expression, () => i)
-						: n;
-				})(e, t, o, u),
-				f = (function (e, t) {
-					if (!e) return;
-					if (void 0 === e.__x_for_key) return;
-					if (e.__x_for_key === t) return e;
-					let n = e;
-					for (; n; ) {
-						if (n.__x_for_key === t)
-							return n.parentElement.insertBefore(n, e);
-						n =
-							!(
-								!n.nextElementSibling ||
-								void 0 === n.nextElementSibling.__x_for_key
-							) && n.nextElementSibling;
-					}
-				})(c.nextElementSibling, d);
-			f
-				? (delete f.__x_for_key,
-				  (f.__x_for = u),
-				  e.updateElements(f, () => f.__x_for))
-				: ((f = (function (e, t) {
-						let n = document.importNode(e.content, !0);
-						return (
-							t.parentElement.insertBefore(
-								n,
-								t.nextElementSibling
-							),
-							t.nextElementSibling
-						);
-				  })(t, c)),
-				  w(
-						f,
-						() => {},
-						() => {},
-						e,
-						r
-				  ),
-				  (f.__x_for = u),
-				  e.initializeElements(f, () => f.__x_for)),
-				(c = f),
-				(c.__x_for_key = d);
-		}),
-			(function (e, t) {
-				var n =
-					!(
-						!e.nextElementSibling ||
-						void 0 === e.nextElementSibling.__x_for_key
-					) && e.nextElementSibling;
-				for (; n; ) {
-					let e = n,
-						i = n.nextElementSibling;
-					E(
-						n,
-						() => {
-							e.remove();
-						},
-						() => {},
-						t
-					),
-						(n = !(!i || void 0 === i.__x_for_key) && i);
-				}
-			})(c, e);
-	}
-	function D(e) {
-		let t = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/,
-			n = String(e).match(/([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/);
-		if (!n) return;
-		let i = {};
-		i.items = n[2].trim();
-		let r = n[1].trim().replace(/^\(|\)$/g, ''),
-			s = r.match(t);
-		return (
-			s
-				? ((i.item = r.replace(t, '').trim()),
-				  (i.index = s[1].trim()),
-				  s[2] && (i.collection = s[2].trim()))
-				: (i.item = r),
-			i
-		);
-	}
-	function T(e, t, n, r, o, l, c) {
-		var u = e.evaluateReturnExpression(t, r, o);
-		if ('value' === n) {
-			if (
-				ge.ignoreFocusedForValueBinding &&
-				document.activeElement.isSameNode(t)
-			)
-				return;
-			if (
-				(void 0 === u && String(r).match(/\./) && (u = ''),
-				'radio' === t.type)
-			)
-				void 0 === t.attributes.value && 'bind' === l
-					? (t.value = u)
-					: 'bind' !== l && (t.checked = s(t.value, u));
-			else if ('checkbox' === t.type)
-				'boolean' == typeof u ||
-				[null, void 0].includes(u) ||
-				'bind' !== l
-					? 'bind' !== l &&
-					  (Array.isArray(u)
-							? (t.checked = u.some((e) => s(e, t.value)))
-							: (t.checked = !!u))
-					: (t.value = String(u));
-			else if ('SELECT' === t.tagName)
-				!(function (e, t) {
-					const n = [].concat(t).map((e) => e + '');
-					Array.from(e.options).forEach((e) => {
-						e.selected = n.includes(e.value || e.text);
-					});
-				})(t, u);
-			else {
-				if (t.value === u) return;
-				t.value = u;
-			}
-		} else if ('class' === n)
-			if (Array.isArray(u)) {
-				const e = t.__x_original_classes || [];
-				t.setAttribute('class', i(e.concat(u)).join(' '));
-			} else if ('object' == typeof u) {
-				Object.keys(u)
-					.sort((e, t) => u[e] - u[t])
-					.forEach((e) => {
-						u[e]
-							? b(e).forEach((e) => t.classList.add(e))
-							: b(e).forEach((e) => t.classList.remove(e));
-					});
-			} else {
-				const e = t.__x_original_classes || [],
-					n = u ? b(u) : [];
-				t.setAttribute('class', i(e.concat(n)).join(' '));
-			}
-		else
-			(n = c.includes('camel') ? a(n) : n),
-				[null, void 0, !1].includes(u)
-					? t.removeAttribute(n)
-					: !(function (e) {
-							return [
-								'disabled',
-								'checked',
-								'required',
-								'readonly',
-								'hidden',
-								'open',
-								'selected',
-								'autofocus',
-								'itemscope',
-								'multiple',
-								'novalidate',
-								'allowfullscreen',
-								'allowpaymentrequest',
-								'formnovalidate',
-								'autoplay',
-								'controls',
-								'loop',
-								'muted',
-								'playsinline',
-								'default',
-								'ismap',
-								'reversed',
-								'async',
-								'defer',
-								'nomodule'
-							].includes(e);
-					  })(n)
-					? L(t, n, u)
-					: L(t, n, n);
-	}
-	function L(e, t, n) {
-		e.getAttribute(t) != n && e.setAttribute(t, n);
-	}
-	function N(e, t, n, i, r, s = {}) {
-		const o = { passive: i.includes('passive') };
-		let l, u;
-		if (
-			(i.includes('camel') && (n = a(n)),
-			i.includes('away')
-				? ((u = document),
-				  (l = (a) => {
-						t.contains(a.target) ||
-							(t.offsetWidth < 1 && t.offsetHeight < 1) ||
-							(z(e, r, a, s),
-							i.includes('once') &&
-								document.removeEventListener(n, l, o));
-				  }))
-				: ((u = i.includes('window')
-						? window
-						: i.includes('document')
-						? document
-						: t),
-				  (l = (a) => {
-						if (
-							(u !== window && u !== document) ||
-							document.body.contains(t)
-						) {
-							if (
-								!(
-									((function (e) {
-										return ['keydown', 'keyup'].includes(e);
-									})(n) &&
-										(function (e, t) {
-											let n = t.filter(
-												(e) =>
-													![
-														'window',
-														'document',
-														'prevent',
-														'stop'
-													].includes(e)
-											);
-											if (n.includes('debounce')) {
-												let e = n.indexOf('debounce');
-												n.splice(
-													e,
-													P(
-														(
-															n[e + 1] ||
-															'invalid-wait'
-														).split('ms')[0]
-													)
-														? 2
-														: 1
-												);
-											}
-											if (0 === n.length) return !1;
-											if (
-												1 === n.length &&
-												n[0] === R(e.key)
-											)
-												return !1;
-											const i = [
-												'ctrl',
-												'shift',
-												'alt',
-												'meta',
-												'cmd',
-												'super'
-											].filter((e) => n.includes(e));
-											if (
-												((n = n.filter(
-													(e) => !i.includes(e)
-												)),
-												i.length > 0)
-											) {
-												if (
-													i.filter(
-														(t) => (
-															('cmd' !== t &&
-																'super' !==
-																	t) ||
-																(t = 'meta'),
-															e[t + 'Key']
-														)
-													).length === i.length &&
-													n[0] === R(e.key)
-												)
-													return !1;
-											}
-											return !0;
-										})(a, i)) ||
-									(i.includes('prevent') &&
-										a.preventDefault(),
-									i.includes('stop') && a.stopPropagation(),
-									i.includes('self') && a.target !== t)
-								)
-							) {
-								z(e, r, a, s).then((e) => {
-									!1 === e
-										? a.preventDefault()
-										: i.includes('once') &&
-										  u.removeEventListener(n, l, o);
-								});
-							}
-						} else u.removeEventListener(n, l, o);
-				  })),
-			i.includes('debounce'))
-		) {
-			let e = i[i.indexOf('debounce') + 1] || 'invalid-wait',
-				t = P(e.split('ms')[0]) ? Number(e.split('ms')[0]) : 250;
-			l = c(l, t);
+
+	// packages/alpinejs/src/utils/styles.js
+	function setStyles(el, value) {
+		if (typeof value === 'object' && value !== null) {
+			return setStylesFromObject(el, value);
 		}
-		u.addEventListener(n, l, o);
+		return setStylesFromString(el, value);
 	}
-	function z(e, t, i, r) {
-		return e.evaluateCommandExpression(i.target, t, () =>
-			n(n({}, r()), {}, { $event: i })
+	function setStylesFromObject(el, value) {
+		let previousStyles = {};
+		Object.entries(value).forEach(([key, value2]) => {
+			previousStyles[key] = el.style[key];
+			el.style[key] = value2;
+		});
+		setTimeout(() => {
+			if (el.style.length === 0) {
+				el.removeAttribute('style');
+			}
+		});
+		return () => {
+			setStyles(el, previousStyles);
+		};
+	}
+	function setStylesFromString(el, value) {
+		let cache = el.getAttribute('style', value);
+		el.setAttribute('style', value);
+		return () => {
+			el.setAttribute('style', cache);
+		};
+	}
+
+	// packages/alpinejs/src/utils/once.js
+	function once(callback, fallback = () => {}) {
+		let called = false;
+		return function () {
+			if (!called) {
+				called = true;
+				callback.apply(this, arguments);
+			} else {
+				fallback.apply(this, arguments);
+			}
+		};
+	}
+
+	// packages/alpinejs/src/directives/x-transition.js
+	directive('transition', (el, { value, modifiers, expression }) => {
+		if (!expression) {
+			registerTransitionsFromHelper(el, modifiers, value);
+		} else {
+			registerTransitionsFromClassString(el, expression, value);
+		}
+	});
+	function registerTransitionsFromClassString(el, classString, stage) {
+		registerTransitionObject(el, setClasses, '');
+		let directiveStorageMap = {
+			enter: (classes) => {
+				el._x_transition.enter.during = classes;
+			},
+			'enter-start': (classes) => {
+				el._x_transition.enter.start = classes;
+			},
+			'enter-end': (classes) => {
+				el._x_transition.enter.end = classes;
+			},
+			leave: (classes) => {
+				el._x_transition.leave.during = classes;
+			},
+			'leave-start': (classes) => {
+				el._x_transition.leave.start = classes;
+			},
+			'leave-end': (classes) => {
+				el._x_transition.leave.end = classes;
+			}
+		};
+		directiveStorageMap[stage](classString);
+	}
+	function registerTransitionsFromHelper(el, modifiers, stage) {
+		registerTransitionObject(el, setStyles);
+		let doesntSpecify = !modifiers.includes('in') && !modifiers.includes('out') && !stage;
+		let transitioningIn = doesntSpecify || modifiers.includes('in') || ['enter'].includes(stage);
+		let transitioningOut = doesntSpecify || modifiers.includes('out') || ['leave'].includes(stage);
+		if (modifiers.includes('in') && !doesntSpecify) {
+			modifiers = modifiers.filter((i, index) => index < modifiers.indexOf('out'));
+		}
+		if (modifiers.includes('out') && !doesntSpecify) {
+			modifiers = modifiers.filter((i, index) => index > modifiers.indexOf('out'));
+		}
+		let wantsAll = !modifiers.includes('opacity') && !modifiers.includes('scale');
+		let wantsOpacity = wantsAll || modifiers.includes('opacity');
+		let wantsScale = wantsAll || modifiers.includes('scale');
+		let opacityValue = wantsOpacity ? 0 : 1;
+		let scaleValue = wantsScale ? modifierValue(modifiers, 'scale', 95) / 100 : 1;
+		let delay = modifierValue(modifiers, 'delay', 0);
+		let origin = modifierValue(modifiers, 'origin', 'center');
+		let property = 'opacity, transform';
+		let durationIn = modifierValue(modifiers, 'duration', 150) / 1e3;
+		let durationOut = modifierValue(modifiers, 'duration', 75) / 1e3;
+		let easing = `cubic-bezier(0.4, 0.0, 0.2, 1)`;
+		if (transitioningIn) {
+			el._x_transition.enter.during = {
+				transformOrigin: origin,
+				transitionDelay: delay,
+				transitionProperty: property,
+				transitionDuration: `${durationIn}s`,
+				transitionTimingFunction: easing
+			};
+			el._x_transition.enter.start = {
+				opacity: opacityValue,
+				transform: `scale(${scaleValue})`
+			};
+			el._x_transition.enter.end = {
+				opacity: 1,
+				transform: `scale(1)`
+			};
+		}
+		if (transitioningOut) {
+			el._x_transition.leave.during = {
+				transformOrigin: origin,
+				transitionDelay: delay,
+				transitionProperty: property,
+				transitionDuration: `${durationOut}s`,
+				transitionTimingFunction: easing
+			};
+			el._x_transition.leave.start = {
+				opacity: 1,
+				transform: `scale(1)`
+			};
+			el._x_transition.leave.end = {
+				opacity: opacityValue,
+				transform: `scale(${scaleValue})`
+			};
+		}
+	}
+	function registerTransitionObject(el, setFunction, defaultValue = {}) {
+		if (!el._x_transition)
+			el._x_transition = {
+				enter: { during: defaultValue, start: defaultValue, end: defaultValue },
+				leave: { during: defaultValue, start: defaultValue, end: defaultValue },
+				in(before = () => {}, after = () => {}) {
+					return transition(
+						el,
+						setFunction,
+						{
+							during: this.enter.during,
+							start: this.enter.start,
+							end: this.enter.end,
+							entering: true
+						},
+						before,
+						after
+					);
+				},
+				out(before = () => {}, after = () => {}) {
+					return transition(
+						el,
+						setFunction,
+						{
+							during: this.leave.during,
+							start: this.leave.start,
+							end: this.leave.end,
+							entering: false
+						},
+						before,
+						after
+					);
+				}
+			};
+	}
+	window.Element.prototype._x_toggleAndCascadeWithTransitions = function (el, value, show, hide) {
+		let clickAwayCompatibleShow = () => requestAnimationFrame(show);
+		if (value) {
+			el._x_transition ? el._x_transition.in(show) : clickAwayCompatibleShow();
+			return;
+		}
+		el._x_hidePromise = el._x_transition
+			? new Promise((resolve, reject) => {
+					el._x_transition.out(
+						() => {},
+						() => resolve(hide)
+					);
+					el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }));
+			  })
+			: Promise.resolve(hide);
+		queueMicrotask(() => {
+			let closest = closestHide(el);
+			if (closest) {
+				if (!closest._x_hideChildren) closest._x_hideChildren = [];
+				closest._x_hideChildren.push(el);
+			} else {
+				queueMicrotask(() => {
+					let hideAfterChildren = (el2) => {
+						let carry = Promise.all([
+							el2._x_hidePromise,
+							...(el2._x_hideChildren || []).map(hideAfterChildren)
+						]).then(([i]) => i());
+						delete el2._x_hidePromise;
+						delete el2._x_hideChildren;
+						return carry;
+					};
+					hideAfterChildren(el).catch((e) => {
+						if (!e.isFromCancelledTransition) throw e;
+					});
+				});
+			}
+		});
+	};
+	function closestHide(el) {
+		let parent = el.parentNode;
+		if (!parent) return;
+		return parent._x_hidePromise ? parent : closestHide(parent);
+	}
+	function transition(
+		el,
+		setFunction,
+		{ during, start: start2, end, entering } = {},
+		before = () => {},
+		after = () => {}
+	) {
+		if (el._x_transitioning) el._x_transitioning.cancel();
+		let undoStart, undoDuring, undoEnd;
+		performTransition(
+			el,
+			{
+				start() {
+					undoStart = setFunction(el, start2);
+				},
+				during() {
+					undoDuring = setFunction(el, during);
+				},
+				before,
+				end() {
+					undoStart();
+					undoEnd = setFunction(el, end);
+				},
+				after,
+				cleanup() {
+					undoDuring();
+					undoEnd();
+				}
+			},
+			entering
 		);
 	}
-	function R(e) {
-		switch (e) {
+	function performTransition(el, stages, entering) {
+		let interrupted, reachedBefore, reachedEnd;
+		let finish = once(() => {
+			mutateDom(() => {
+				interrupted = true;
+				if (!reachedBefore) stages.before();
+				if (!reachedEnd) {
+					stages.end();
+					releaseNextTicks();
+				}
+				stages.after();
+				if (el.isConnected) stages.cleanup();
+				delete el._x_transitioning;
+			});
+		});
+		el._x_transitioning = {
+			beforeCancels: [],
+			beforeCancel(callback) {
+				this.beforeCancels.push(callback);
+			},
+			cancel: once(function () {
+				while (this.beforeCancels.length) {
+					this.beforeCancels.shift()();
+				}
+				finish();
+			}),
+			finish,
+			entering
+		};
+		mutateDom(() => {
+			stages.start();
+			stages.during();
+		});
+		holdNextTicks();
+		requestAnimationFrame(() => {
+			if (interrupted) return;
+			let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, '').replace('s', '')) * 1e3;
+			let delay = Number(getComputedStyle(el).transitionDelay.replace(/,.*/, '').replace('s', '')) * 1e3;
+			if (duration === 0) duration = Number(getComputedStyle(el).animationDuration.replace('s', '')) * 1e3;
+			mutateDom(() => {
+				stages.before();
+			});
+			reachedBefore = true;
+			requestAnimationFrame(() => {
+				if (interrupted) return;
+				mutateDom(() => {
+					stages.end();
+				});
+				releaseNextTicks();
+				setTimeout(el._x_transitioning.finish, duration + delay);
+				reachedEnd = true;
+			});
+		});
+	}
+	function modifierValue(modifiers, key, fallback) {
+		if (modifiers.indexOf(key) === -1) return fallback;
+		const rawValue = modifiers[modifiers.indexOf(key) + 1];
+		if (!rawValue) return fallback;
+		if (key === 'scale') {
+			if (isNaN(rawValue)) return fallback;
+		}
+		if (key === 'duration') {
+			let match = rawValue.match(/([0-9]+)ms/);
+			if (match) return match[1];
+		}
+		if (key === 'origin') {
+			if (['top', 'right', 'left', 'center', 'bottom'].includes(modifiers[modifiers.indexOf(key) + 2])) {
+				return [rawValue, modifiers[modifiers.indexOf(key) + 2]].join(' ');
+			}
+		}
+		return rawValue;
+	}
+
+	// packages/alpinejs/src/directives/x-ignore.js
+	var handler = () => {};
+	handler.inline = (el, { modifiers }, { cleanup: cleanup2 }) => {
+		modifiers.includes('self') ? (el._x_ignoreSelf = true) : (el._x_ignore = true);
+		cleanup2(() => {
+			modifiers.includes('self') ? delete el._x_ignoreSelf : delete el._x_ignore;
+		});
+	};
+	directive('ignore', handler);
+
+	// packages/alpinejs/src/directives/x-effect.js
+	directive('effect', (el, { expression }, { effect: effect3 }) => effect3(evaluateLater(el, expression)));
+
+	// packages/alpinejs/src/utils/bind.js
+	function bind(el, name, value, modifiers = []) {
+		if (!el._x_bindings) el._x_bindings = reactive({});
+		el._x_bindings[name] = value;
+		name = modifiers.includes('camel') ? camelCase(name) : name;
+		switch (name) {
+			case 'value':
+				bindInputValue(el, value);
+				break;
+			case 'style':
+				bindStyles(el, value);
+				break;
+			case 'class':
+				bindClasses(el, value);
+				break;
+			default:
+				bindAttribute(el, name, value);
+				break;
+		}
+	}
+	function bindInputValue(el, value) {
+		if (el.type === 'radio') {
+			if (el.attributes.value === void 0) {
+				el.value = value;
+			}
+			if (window.fromModel) {
+				el.checked = checkedAttrLooseCompare(el.value, value);
+			}
+		} else if (el.type === 'checkbox') {
+			if (Number.isInteger(value)) {
+				el.value = value;
+			} else if (
+				!Number.isInteger(value) &&
+				!Array.isArray(value) &&
+				typeof value !== 'boolean' &&
+				![null, void 0].includes(value)
+			) {
+				el.value = String(value);
+			} else {
+				if (Array.isArray(value)) {
+					el.checked = value.some((val) => checkedAttrLooseCompare(val, el.value));
+				} else {
+					el.checked = !!value;
+				}
+			}
+		} else if (el.tagName === 'SELECT') {
+			updateSelect(el, value);
+		} else {
+			if (el.value === value) return;
+			el.value = value;
+		}
+	}
+	function bindClasses(el, value) {
+		if (el._x_undoAddedClasses) el._x_undoAddedClasses();
+		el._x_undoAddedClasses = setClasses(el, value);
+	}
+	function bindStyles(el, value) {
+		if (el._x_undoAddedStyles) el._x_undoAddedStyles();
+		el._x_undoAddedStyles = setStyles(el, value);
+	}
+	function bindAttribute(el, name, value) {
+		if ([null, void 0, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
+			el.removeAttribute(name);
+		} else {
+			if (isBooleanAttr2(name)) value = name;
+			setIfChanged(el, name, value);
+		}
+	}
+	function setIfChanged(el, attrName, value) {
+		if (el.getAttribute(attrName) != value) {
+			el.setAttribute(attrName, value);
+		}
+	}
+	function updateSelect(el, value) {
+		const arrayWrappedValue = [].concat(value).map((value2) => {
+			return value2 + '';
+		});
+		Array.from(el.options).forEach((option) => {
+			option.selected = arrayWrappedValue.includes(option.value);
+		});
+	}
+	function camelCase(subject) {
+		return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+	}
+	function checkedAttrLooseCompare(valueA, valueB) {
+		return valueA == valueB;
+	}
+	function isBooleanAttr2(attrName) {
+		const booleanAttributes = [
+			'disabled',
+			'checked',
+			'required',
+			'readonly',
+			'hidden',
+			'open',
+			'selected',
+			'autofocus',
+			'itemscope',
+			'multiple',
+			'novalidate',
+			'allowfullscreen',
+			'allowpaymentrequest',
+			'formnovalidate',
+			'autoplay',
+			'controls',
+			'loop',
+			'muted',
+			'playsinline',
+			'default',
+			'ismap',
+			'reversed',
+			'async',
+			'defer',
+			'nomodule'
+		];
+		return booleanAttributes.includes(attrName);
+	}
+	function attributeShouldntBePreservedIfFalsy(name) {
+		return !['aria-pressed', 'aria-checked'].includes(name);
+	}
+
+	// packages/alpinejs/src/utils/on.js
+	function on(el, event, modifiers, callback) {
+		let listenerTarget = el;
+		let handler3 = (e) => callback(e);
+		let options = {};
+		let wrapHandler = (callback2, wrapper) => (e) => wrapper(callback2, e);
+		if (modifiers.includes('camel')) event = camelCase2(event);
+		if (modifiers.includes('passive')) options.passive = true;
+		if (modifiers.includes('window')) listenerTarget = window;
+		if (modifiers.includes('document')) listenerTarget = document;
+		if (modifiers.includes('prevent'))
+			handler3 = wrapHandler(handler3, (next, e) => {
+				e.preventDefault();
+				next(e);
+			});
+		if (modifiers.includes('stop'))
+			handler3 = wrapHandler(handler3, (next, e) => {
+				e.stopPropagation();
+				next(e);
+			});
+		if (modifiers.includes('self'))
+			handler3 = wrapHandler(handler3, (next, e) => {
+				e.target === el && next(e);
+			});
+		if (modifiers.includes('away') || modifiers.includes('outside')) {
+			listenerTarget = document;
+			handler3 = wrapHandler(handler3, (next, e) => {
+				if (el.contains(e.target)) return;
+				if (el.offsetWidth < 1 && el.offsetHeight < 1) return;
+				next(e);
+			});
+		}
+		handler3 = wrapHandler(handler3, (next, e) => {
+			if (isKeyEvent(event)) {
+				if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+					return;
+				}
+			}
+			next(e);
+		});
+		if (modifiers.includes('debounce')) {
+			let nextModifier = modifiers[modifiers.indexOf('debounce') + 1] || 'invalid-wait';
+			let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
+			handler3 = debounce(handler3, wait, this);
+		}
+		if (modifiers.includes('throttle')) {
+			let nextModifier = modifiers[modifiers.indexOf('throttle') + 1] || 'invalid-wait';
+			let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250;
+			handler3 = throttle(handler3, wait, this);
+		}
+		if (modifiers.includes('once')) {
+			handler3 = wrapHandler(handler3, (next, e) => {
+				next(e);
+				listenerTarget.removeEventListener(event, handler3, options);
+			});
+		}
+		listenerTarget.addEventListener(event, handler3, options);
+		return () => {
+			listenerTarget.removeEventListener(event, handler3, options);
+		};
+	}
+	function camelCase2(subject) {
+		return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+	}
+	function debounce(func, wait) {
+		var timeout;
+		return function () {
+			var context = this,
+				args = arguments;
+			var later = function () {
+				timeout = null;
+				func.apply(context, args);
+			};
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+		};
+	}
+	function throttle(func, limit) {
+		let inThrottle;
+		return function () {
+			let context = this,
+				args = arguments;
+			if (!inThrottle) {
+				func.apply(context, args);
+				inThrottle = true;
+				setTimeout(() => (inThrottle = false), limit);
+			}
+		};
+	}
+	function isNumeric(subject) {
+		return !Array.isArray(subject) && !isNaN(subject);
+	}
+	function kebabCase(subject) {
+		return subject
+			.replace(/([a-z])([A-Z])/g, '$1-$2')
+			.replace(/[_\s]/, '-')
+			.toLowerCase();
+	}
+	function isKeyEvent(event) {
+		return ['keydown', 'keyup'].includes(event);
+	}
+	function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
+		let keyModifiers = modifiers.filter((i) => {
+			return !['window', 'document', 'prevent', 'stop', 'once'].includes(i);
+		});
+		if (keyModifiers.includes('debounce')) {
+			let debounceIndex = keyModifiers.indexOf('debounce');
+			keyModifiers.splice(
+				debounceIndex,
+				isNumeric((keyModifiers[debounceIndex + 1] || 'invalid-wait').split('ms')[0]) ? 2 : 1
+			);
+		}
+		if (keyModifiers.length === 0) return false;
+		if (keyModifiers.length === 1 && keyModifiers[0] === keyToModifier(e.key)) return false;
+		const systemKeyModifiers = ['ctrl', 'shift', 'alt', 'meta', 'cmd', 'super'];
+		const selectedSystemKeyModifiers = systemKeyModifiers.filter((modifier) => keyModifiers.includes(modifier));
+		keyModifiers = keyModifiers.filter((i) => !selectedSystemKeyModifiers.includes(i));
+		if (selectedSystemKeyModifiers.length > 0) {
+			const activelyPressedKeyModifiers = selectedSystemKeyModifiers.filter((modifier) => {
+				if (modifier === 'cmd' || modifier === 'super') modifier = 'meta';
+				return e[`${modifier}Key`];
+			});
+			if (activelyPressedKeyModifiers.length === selectedSystemKeyModifiers.length) {
+				if (keyModifiers[0] === keyToModifier(e.key)) return false;
+			}
+		}
+		return true;
+	}
+	function keyToModifier(key) {
+		switch (key) {
 			case '/':
 				return 'slash';
 			case ' ':
 			case 'Spacebar':
 				return 'space';
 			default:
-				return (
-					e &&
-					e
-						.replace(/([a-z])([A-Z])/g, '$1-$2')
-						.replace(/[_\s]/, '-')
-						.toLowerCase()
-				);
+				return key && kebabCase(key);
 		}
 	}
-	function F(e, t, n) {
-		return (
-			'radio' === e.type &&
-				(e.hasAttribute('name') || e.setAttribute('name', n)),
-			(n, i) => {
-				if (n instanceof CustomEvent && n.detail) return n.detail;
-				if ('checkbox' === e.type) {
-					if (Array.isArray(i)) {
-						const e = t.includes('number')
-							? I(n.target.value)
-							: n.target.value;
-						return n.target.checked
-							? i.concat([e])
-							: i.filter((t) => !s(t, e));
-					}
-					return n.target.checked;
-				}
-				if ('select' === e.tagName.toLowerCase() && e.multiple)
-					return t.includes('number')
-						? Array.from(n.target.selectedOptions).map((e) =>
-								I(e.value || e.text)
-						  )
-						: Array.from(n.target.selectedOptions).map(
-								(e) => e.value || e.text
-						  );
-				{
-					const e = n.target.value;
-					return t.includes('number')
-						? I(e)
-						: t.includes('trim')
-						? e.trim()
-						: e;
-				}
-			}
-		);
-	}
-	function I(e) {
-		const t = e ? parseFloat(e) : null;
-		return P(t) ? t : e;
-	}
-	const { isArray: M } = Array,
-		{
-			getPrototypeOf: B,
-			create: q,
-			defineProperty: U,
-			defineProperties: W,
-			isExtensible: K,
-			getOwnPropertyDescriptor: G,
-			getOwnPropertyNames: H,
-			getOwnPropertySymbols: V,
-			preventExtensions: Z,
-			hasOwnProperty: J
-		} = Object,
-		{ push: Q, concat: X, map: Y } = Array.prototype;
-	function ee(e) {
-		return void 0 === e;
-	}
-	function te(e) {
-		return 'function' == typeof e;
-	}
-	const ne = new WeakMap();
-	function ie(e, t) {
-		ne.set(e, t);
-	}
-	const re = (e) => ne.get(e) || e;
-	function se(e, t) {
-		return e.valueIsObservable(t) ? e.getProxy(t) : t;
-	}
-	function oe(e, t, n) {
-		X.call(H(n), V(n)).forEach((i) => {
-			let r = G(n, i);
-			r.configurable || (r = ve(e, r, se)), U(t, i, r);
-		}),
-			Z(t);
-	}
-	class ae {
-		constructor(e, t) {
-			(this.originalTarget = t), (this.membrane = e);
-		}
-		get(e, t) {
-			const { originalTarget: n, membrane: i } = this,
-				r = n[t],
-				{ valueObserved: s } = i;
-			return s(n, t), i.getProxy(r);
-		}
-		set(e, t, n) {
-			const {
-				originalTarget: i,
-				membrane: { valueMutated: r }
-			} = this;
-			return (
-				i[t] !== n
-					? ((i[t] = n), r(i, t))
-					: 'length' === t && M(i) && r(i, t),
-				!0
-			);
-		}
-		deleteProperty(e, t) {
-			const {
-				originalTarget: n,
-				membrane: { valueMutated: i }
-			} = this;
-			return delete n[t], i(n, t), !0;
-		}
-		apply(e, t, n) {}
-		construct(e, t, n) {}
-		has(e, t) {
-			const {
-				originalTarget: n,
-				membrane: { valueObserved: i }
-			} = this;
-			return i(n, t), t in n;
-		}
-		ownKeys(e) {
-			const { originalTarget: t } = this;
-			return X.call(H(t), V(t));
-		}
-		isExtensible(e) {
-			const t = K(e);
-			if (!t) return t;
-			const { originalTarget: n, membrane: i } = this,
-				r = K(n);
-			return r || oe(i, e, n), r;
-		}
-		setPrototypeOf(e, t) {}
-		getPrototypeOf(e) {
-			const { originalTarget: t } = this;
-			return B(t);
-		}
-		getOwnPropertyDescriptor(e, t) {
-			const { originalTarget: n, membrane: i } = this,
-				{ valueObserved: r } = this.membrane;
-			r(n, t);
-			let s = G(n, t);
-			if (ee(s)) return s;
-			const o = G(e, t);
-			return ee(o)
-				? ((s = ve(i, s, se)), s.configurable || U(e, t, s), s)
-				: o;
-		}
-		preventExtensions(e) {
-			const { originalTarget: t, membrane: n } = this;
-			return oe(n, e, t), Z(t), !0;
-		}
-		defineProperty(e, t, n) {
-			const { originalTarget: i, membrane: r } = this,
-				{ valueMutated: s } = r,
-				{ configurable: o } = n;
-			if (J.call(n, 'writable') && !J.call(n, 'value')) {
-				const e = G(i, t);
-				n.value = e.value;
-			}
-			return (
-				U(
-					i,
-					t,
-					(function (e) {
-						return J.call(e, 'value') && (e.value = re(e.value)), e;
-					})(n)
-				),
-				!1 === o && U(e, t, ve(r, n, se)),
-				s(i, t),
-				!0
-			);
-		}
-	}
-	function le(e, t) {
-		return e.valueIsObservable(t) ? e.getReadOnlyProxy(t) : t;
-	}
-	class ce {
-		constructor(e, t) {
-			(this.originalTarget = t), (this.membrane = e);
-		}
-		get(e, t) {
-			const { membrane: n, originalTarget: i } = this,
-				r = i[t],
-				{ valueObserved: s } = n;
-			return s(i, t), n.getReadOnlyProxy(r);
-		}
-		set(e, t, n) {
-			return !1;
-		}
-		deleteProperty(e, t) {
-			return !1;
-		}
-		apply(e, t, n) {}
-		construct(e, t, n) {}
-		has(e, t) {
-			const {
-				originalTarget: n,
-				membrane: { valueObserved: i }
-			} = this;
-			return i(n, t), t in n;
-		}
-		ownKeys(e) {
-			const { originalTarget: t } = this;
-			return X.call(H(t), V(t));
-		}
-		setPrototypeOf(e, t) {}
-		getOwnPropertyDescriptor(e, t) {
-			const { originalTarget: n, membrane: i } = this,
-				{ valueObserved: r } = i;
-			r(n, t);
-			let s = G(n, t);
-			if (ee(s)) return s;
-			const o = G(e, t);
-			return ee(o)
-				? ((s = ve(i, s, le)),
-				  J.call(s, 'set') && (s.set = void 0),
-				  s.configurable || U(e, t, s),
-				  s)
-				: o;
-		}
-		preventExtensions(e) {
-			return !1;
-		}
-		defineProperty(e, t, n) {
-			return !1;
-		}
-	}
-	function ue(e) {
-		let t = void 0;
-		return M(e) ? (t = []) : 'object' == typeof e && (t = {}), t;
-	}
-	const de = Object.prototype;
-	function fe(e) {
-		if (null === e) return !1;
-		if ('object' != typeof e) return !1;
-		if (M(e)) return !0;
-		const t = B(e);
-		return t === de || null === t || null === B(t);
-	}
-	const me = (e, t) => {},
-		pe = (e, t) => {},
-		he = (e) => e;
-	function ve(e, t, n) {
-		const { set: i, get: r } = t;
-		return (
-			J.call(t, 'value')
-				? (t.value = n(e, t.value))
-				: (ee(r) ||
-						(t.get = function () {
-							return n(e, r.call(re(this)));
-						}),
-				  ee(i) ||
-						(t.set = function (t) {
-							i.call(re(this), e.unwrapProxy(t));
-						})),
-			t
-		);
-	}
-	class ye {
-		constructor(e) {
-			if (
-				((this.valueDistortion = he),
-				(this.valueMutated = pe),
-				(this.valueObserved = me),
-				(this.valueIsObservable = fe),
-				(this.objectGraph = new WeakMap()),
-				!ee(e))
-			) {
-				const {
-					valueDistortion: t,
-					valueMutated: n,
-					valueObserved: i,
-					valueIsObservable: r
-				} = e;
-				(this.valueDistortion = te(t) ? t : he),
-					(this.valueMutated = te(n) ? n : pe),
-					(this.valueObserved = te(i) ? i : me),
-					(this.valueIsObservable = te(r) ? r : fe);
-			}
-		}
-		getProxy(e) {
-			const t = re(e),
-				n = this.valueDistortion(t);
-			if (this.valueIsObservable(n)) {
-				const i = this.getReactiveState(t, n);
-				return i.readOnly === e ? e : i.reactive;
-			}
-			return n;
-		}
-		getReadOnlyProxy(e) {
-			e = re(e);
-			const t = this.valueDistortion(e);
-			return this.valueIsObservable(t)
-				? this.getReactiveState(e, t).readOnly
-				: t;
-		}
-		unwrapProxy(e) {
-			return re(e);
-		}
-		getReactiveState(e, t) {
-			const { objectGraph: n } = this;
-			let i = n.get(t);
-			if (i) return i;
-			const r = this;
-			return (
-				(i = {
-					get reactive() {
-						const n = new ae(r, t),
-							i = new Proxy(ue(t), n);
-						return ie(i, e), U(this, 'reactive', { value: i }), i;
-					},
-					get readOnly() {
-						const n = new ce(r, t),
-							i = new Proxy(ue(t), n);
-						return ie(i, e), U(this, 'readOnly', { value: i }), i;
-					}
-				}),
-				n.set(t, i),
-				i
-			);
-		}
-	}
-	class be {
-		constructor(e, t = null) {
-			this.$el = e;
-			const n = this.$el.getAttribute('x-data'),
-				i = '' === n ? '{}' : n,
-				r = this.$el.getAttribute('x-init');
-			let s = { $el: this.$el },
-				o = t ? t.$el : this.$el;
-			Object.entries(ge.magicProperties).forEach(([e, t]) => {
-				Object.defineProperty(s, '$' + e, {
-					get: function () {
-						return t(o);
-					}
-				});
-			}),
-				(this.unobservedData = t ? t.getUnobservedData() : f(e, i, s));
-			let { membrane: a, data: l } = this.wrapDataInObservable(
-				this.unobservedData
-			);
-			var c;
-			(this.$data = l),
-				(this.membrane = a),
-				(this.unobservedData.$el = this.$el),
-				(this.unobservedData.$refs = this.getRefsProxy()),
-				(this.nextTickStack = []),
-				(this.unobservedData.$nextTick = (e) => {
-					this.nextTickStack.push(e);
-				}),
-				(this.watchers = {}),
-				(this.unobservedData.$watch = (e, t) => {
-					this.watchers[e] || (this.watchers[e] = []),
-						this.watchers[e].push(t);
-				}),
-				Object.entries(ge.magicProperties).forEach(([e, t]) => {
-					Object.defineProperty(this.unobservedData, '$' + e, {
-						get: function () {
-							return t(o, this.$el);
-						}
-					});
-				}),
-				(this.showDirectiveStack = []),
-				this.showDirectiveLastElement,
-				t || ge.onBeforeComponentInitializeds.forEach((e) => e(this)),
-				r &&
-					!t &&
-					((this.pauseReactivity = !0),
-					(c = this.evaluateReturnExpression(this.$el, r)),
-					(this.pauseReactivity = !1)),
-				this.initializeElements(this.$el, () => {}, t),
-				this.listenForNewElementsToInitialize(),
-				'function' == typeof c && c.call(this.$data),
-				t ||
-					setTimeout(() => {
-						ge.onComponentInitializeds.forEach((e) => e(this));
-					}, 0);
-		}
-		getUnobservedData() {
-			return (function (e, t) {
-				let n = e.unwrapProxy(t),
-					i = {};
-				return (
-					Object.keys(n).forEach((e) => {
-						['$el', '$refs', '$nextTick', '$watch'].includes(e) ||
-							(i[e] = n[e]);
-					}),
-					i
-				);
-			})(this.membrane, this.$data);
-		}
-		wrapDataInObservable(e) {
-			var t = this;
-			let n = c(function () {
-				t.updateElements(t.$el);
-			}, 0);
-			return (function (e, t) {
-				let n = new ye({
-					valueMutated(e, n) {
-						t(e, n);
-					}
-				});
-				return { data: n.getProxy(e), membrane: n };
-			})(e, (e, i) => {
-				t.watchers[i]
-					? t.watchers[i].forEach((t) => t(e[i]))
-					: Array.isArray(e)
-					? Object.keys(t.watchers).forEach((n) => {
-							let r = n.split('.');
-							'length' !== i &&
-								r.reduce(
-									(i, r) => (
-										Object.is(e, i[r]) &&
-											t.watchers[n].forEach((t) => t(e)),
-										i[r]
-									),
-									t.unobservedData
-								);
-					  })
-					: Object.keys(t.watchers)
-							.filter((e) => e.includes('.'))
-							.forEach((n) => {
-								let r = n.split('.');
-								i === r[r.length - 1] &&
-									r.reduce(
-										(r, s) => (
-											Object.is(e, r) &&
-												t.watchers[n].forEach((t) =>
-													t(e[i])
-												),
-											r[s]
-										),
-										t.unobservedData
-									);
-							}),
-					t.pauseReactivity || n();
-			});
-		}
-		walkAndSkipNestedComponents(e, t, n = () => {}) {
-			l(e, (e) =>
-				e.hasAttribute('x-data') && !e.isSameNode(this.$el)
-					? (e.__x || n(e), !1)
-					: t(e)
-			);
-		}
-		initializeElements(e, t = () => {}, n = !1) {
-			this.walkAndSkipNestedComponents(
-				e,
-				(e) =>
-					void 0 === e.__x_for_key &&
-					void 0 === e.__x_inserted_me &&
-					void this.initializeElement(e, t, !n),
-				(e) => {
-					n || (e.__x = new be(e));
-				}
-			),
-				this.executeAndClearRemainingShowDirectiveStack(),
-				this.executeAndClearNextTickStack(e);
-		}
-		initializeElement(e, t, n = !0) {
-			e.hasAttribute('class') &&
-				h(e, this).length > 0 &&
-				(e.__x_original_classes = b(e.getAttribute('class'))),
-				n && this.registerListeners(e, t),
-				this.resolveBoundAttributes(e, !0, t);
-		}
-		updateElements(e, t = () => {}) {
-			this.walkAndSkipNestedComponents(
-				e,
-				(e) => {
-					if (void 0 !== e.__x_for_key && !e.isSameNode(this.$el))
-						return !1;
-					this.updateElement(e, t);
-				},
-				(e) => {
-					e.__x = new be(e);
-				}
-			),
-				this.executeAndClearRemainingShowDirectiveStack(),
-				this.executeAndClearNextTickStack(e);
-		}
-		executeAndClearNextTickStack(e) {
-			e === this.$el &&
-				this.nextTickStack.length > 0 &&
-				requestAnimationFrame(() => {
-					for (; this.nextTickStack.length > 0; )
-						this.nextTickStack.shift()();
-				});
-		}
-		executeAndClearRemainingShowDirectiveStack() {
-			this.showDirectiveStack
-				.reverse()
-				.map(
-					(e) =>
-						new Promise((t, n) => {
-							e(t, n);
-						})
-				)
-				.reduce(
-					(e, t) =>
-						e.then(() =>
-							t.then((e) => {
-								e();
-							})
-						),
-					Promise.resolve(() => {})
-				)
-				.catch((e) => {
-					if (e !== _) throw e;
-				}),
-				(this.showDirectiveStack = []),
-				(this.showDirectiveLastElement = void 0);
-		}
-		updateElement(e, t) {
-			this.resolveBoundAttributes(e, !1, t);
-		}
-		registerListeners(e, t) {
-			h(e, this).forEach(
-				({ type: i, value: r, modifiers: s, expression: o }) => {
-					switch (i) {
-						case 'on':
-							N(this, e, r, s, o, t);
-							break;
-						case 'model':
-							!(function (e, t, i, r, s) {
-								var o =
-									'select' === t.tagName.toLowerCase() ||
-									['checkbox', 'radio'].includes(t.type) ||
-									i.includes('lazy')
-										? 'change'
-										: 'input';
-								N(
-									e,
-									t,
-									o,
-									i,
-									`${r} = rightSideOfExpression($event, ${r})`,
-									() =>
-										n(
-											n({}, s()),
-											{},
-											{
-												rightSideOfExpression: F(
-													t,
-													i,
-													r
-												)
-											}
-										)
-								);
-							})(this, e, s, o, t);
-					}
-				}
-			);
-		}
-		resolveBoundAttributes(e, t = !1, n) {
-			let i = h(e, this);
-			i.forEach(({ type: r, value: s, modifiers: a, expression: l }) => {
-				switch (r) {
-					case 'model':
-						T(this, e, 'value', l, n, r, a);
-						break;
-					case 'bind':
-						if (
-							'template' === e.tagName.toLowerCase() &&
-							'key' === s
-						)
-							return;
-						T(this, e, s, l, n, r, a);
-						break;
-					case 'text':
-						var c = this.evaluateReturnExpression(e, l, n);
-						!(function (e, t, n) {
-							void 0 === t && String(n).match(/\./) && (t = ''),
-								(e.textContent = t);
-						})(e, c, l);
-						break;
-					case 'html':
-						!(function (e, t, n, i) {
-							t.innerHTML = e.evaluateReturnExpression(t, n, i);
-						})(this, e, l, n);
-						break;
-					case 'show':
-						c = this.evaluateReturnExpression(e, l, n);
-						!(function (e, t, n, i, r = !1) {
-							const s = () => {
-									(t.style.display = 'none'),
-										(t.__x_is_shown = !1);
-								},
-								o = () => {
-									1 === t.style.length &&
-									'none' === t.style.display
-										? t.removeAttribute('style')
-										: t.style.removeProperty('display'),
-										(t.__x_is_shown = !0);
-								};
-							if (!0 === r) return void (n ? o() : s());
-							const a = (i, r) => {
-								n
-									? (('none' === t.style.display ||
-											t.__x_transition) &&
-											w(
-												t,
-												() => {
-													o();
-												},
-												r,
-												e
-											),
-									  i(() => {}))
-									: 'none' !== t.style.display
-									? E(
-											t,
-											() => {
-												i(() => {
-													s();
-												});
-											},
-											r,
-											e
-									  )
-									: i(() => {});
-							};
-							i.includes('immediate')
-								? a(
-										(e) => e(),
-										() => {}
-								  )
-								: (e.showDirectiveLastElement &&
-										!e.showDirectiveLastElement.contains(
-											t
-										) &&
-										e.executeAndClearRemainingShowDirectiveStack(),
-								  e.showDirectiveStack.push(a),
-								  (e.showDirectiveLastElement = t));
-						})(this, e, c, a, t);
-						break;
-					case 'if':
-						if (i.some((e) => 'for' === e.type)) return;
-						c = this.evaluateReturnExpression(e, l, n);
-						!(function (e, t, n, i, r) {
-							o(t, 'x-if');
-							const s =
-								t.nextElementSibling &&
-								!0 === t.nextElementSibling.__x_inserted_me;
-							if (!n || (s && !t.__x_transition))
-								!n &&
-									s &&
-									E(
-										t.nextElementSibling,
-										() => {
-											t.nextElementSibling.remove();
-										},
-										() => {},
-										e,
-										i
-									);
-							else {
-								const n = document.importNode(t.content, !0);
-								t.parentElement.insertBefore(
-									n,
-									t.nextElementSibling
-								),
-									w(
-										t.nextElementSibling,
-										() => {},
-										() => {},
-										e,
-										i
-									),
-									e.initializeElements(
-										t.nextElementSibling,
-										r
-									),
-									(t.nextElementSibling.__x_inserted_me = !0);
-							}
-						})(this, e, c, t, n);
-						break;
-					case 'for':
-						j(this, e, l, t, n);
-						break;
-					case 'cloak':
-						e.removeAttribute('x-cloak');
+
+	// packages/alpinejs/src/directives/x-model.js
+	directive('model', (el, { modifiers, expression }, { effect: effect3, cleanup: cleanup2 }) => {
+		let evaluate2 = evaluateLater(el, expression);
+		let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`;
+		let evaluateAssignment = evaluateLater(el, assignmentExpression);
+		var event =
+			el.tagName.toLowerCase() === 'select' ||
+			['checkbox', 'radio'].includes(el.type) ||
+			modifiers.includes('lazy')
+				? 'change'
+				: 'input';
+		let assigmentFunction = generateAssignmentFunction(el, modifiers, expression);
+		let removeListener = on(el, event, modifiers, (e) => {
+			evaluateAssignment(() => {}, {
+				scope: {
+					$event: e,
+					rightSideOfExpression: assigmentFunction
 				}
 			});
-		}
-		evaluateReturnExpression(e, t, i = () => {}) {
-			return f(
-				e,
-				t,
-				this.$data,
-				n(n({}, i()), {}, { $dispatch: this.getDispatchFunction(e) })
-			);
-		}
-		evaluateCommandExpression(e, t, i = () => {}) {
-			return (function (e, t, n, i = {}) {
-				return d(
-					() => {
-						if ('function' == typeof t)
-							return Promise.resolve(t.call(n, i.$event));
-						let e = Function;
-						if (
-							((e = Object.getPrototypeOf(async function () {})
-								.constructor),
-							Object.keys(n).includes(t))
-						) {
-							let e = new Function(
-								['dataContext', ...Object.keys(i)],
-								`with(dataContext) { return ${t} }`
-							)(n, ...Object.values(i));
-							return 'function' == typeof e
-								? Promise.resolve(e.call(n, i.$event))
-								: Promise.resolve();
-						}
-						return Promise.resolve(
-							new e(
-								['dataContext', ...Object.keys(i)],
-								`with(dataContext) { ${t} }`
-							)(n, ...Object.values(i))
-						);
-					},
-					{ el: e, expression: t }
-				);
-			})(
-				e,
-				t,
-				this.$data,
-				n(n({}, i()), {}, { $dispatch: this.getDispatchFunction(e) })
-			);
-		}
-		getDispatchFunction(e) {
-			return (t, n = {}) => {
-				e.dispatchEvent(new CustomEvent(t, { detail: n, bubbles: !0 }));
-			};
-		}
-		listenForNewElementsToInitialize() {
-			const e = this.$el;
-			new MutationObserver((e) => {
-				for (let t = 0; t < e.length; t++) {
-					const n = e[t].target.closest('[x-data]');
-					if (n && n.isSameNode(this.$el)) {
-						if (
-							'attributes' === e[t].type &&
-							'x-data' === e[t].attributeName
-						) {
-							const n =
-									e[t].target.getAttribute('x-data') || '{}',
-								i = f(this.$el, n, { $el: this.$el });
-							Object.keys(i).forEach((e) => {
-								this.$data[e] !== i[e] &&
-									(this.$data[e] = i[e]);
-							});
-						}
-						e[t].addedNodes.length > 0 &&
-							e[t].addedNodes.forEach((e) => {
-								1 !== e.nodeType ||
-									e.__x_inserted_me ||
-									(!e.matches('[x-data]') || e.__x
-										? this.initializeElements(e)
-										: (e.__x = new be(e)));
-							});
-					}
-				}
-			}).observe(e, { childList: !0, attributes: !0, subtree: !0 });
-		}
-		getRefsProxy() {
-			var e = this;
-			return new Proxy(
-				{},
-				{
-					get(t, n) {
-						return (
-							'$isAlpineProxy' === n ||
-							(e.walkAndSkipNestedComponents(e.$el, (e) => {
-								e.hasAttribute('x-ref') &&
-									e.getAttribute('x-ref') === n &&
-									(i = e);
-							}),
-							i)
-						);
-						var i;
-					}
-				}
-			);
-		}
-	}
-	const ge = {
-		version: '2.8.2',
-		pauseMutationObserver: !1,
-		magicProperties: {},
-		onComponentInitializeds: [],
-		onBeforeComponentInitializeds: [],
-		ignoreFocusedForValueBinding: !1,
-		start: async function () {
-			r() ||
-				(await new Promise((e) => {
-					'loading' == document.readyState
-						? document.addEventListener('DOMContentLoaded', e)
-						: e();
-				})),
-				this.discoverComponents((e) => {
-					this.initializeComponent(e);
-				}),
-				document.addEventListener('turbolinks:load', () => {
-					this.discoverUninitializedComponents((e) => {
-						this.initializeComponent(e);
-					});
-				}),
-				this.listenForNewUninitializedComponentsAtRunTime();
-		},
-		discoverComponents: function (e) {
-			document.querySelectorAll('[x-data]').forEach((t) => {
-				e(t);
+		});
+		cleanup2(() => removeListener());
+		el._x_forceModelUpdate = () => {
+			evaluate2((value) => {
+				if (value === void 0 && expression.match(/\./)) value = '';
+				window.fromModel = true;
+				mutateDom(() => bind(el, 'value', value));
+				delete window.fromModel;
 			});
-		},
-		discoverUninitializedComponents: function (e, t = null) {
-			const n = (t || document).querySelectorAll('[x-data]');
-			Array.from(n)
-				.filter((e) => void 0 === e.__x)
-				.forEach((t) => {
-					e(t);
-				});
-		},
-		listenForNewUninitializedComponentsAtRunTime: function () {
-			const e = document.querySelector('body');
-			new MutationObserver((e) => {
-				if (!this.pauseMutationObserver)
-					for (let t = 0; t < e.length; t++)
-						e[t].addedNodes.length > 0 &&
-							e[t].addedNodes.forEach((e) => {
-								1 === e.nodeType &&
-									((e.parentElement &&
-										e.parentElement.closest('[x-data]')) ||
-										this.discoverUninitializedComponents(
-											(e) => {
-												this.initializeComponent(e);
-											},
-											e.parentElement
-										));
-							});
-			}).observe(e, { childList: !0, attributes: !0, subtree: !0 });
-		},
-		initializeComponent: function (e) {
-			if (!e.__x)
-				try {
-					e.__x = new be(e);
-				} catch (e) {
-					setTimeout(() => {
-						throw e;
-					}, 0);
-				}
-		},
-		clone: function (e, t) {
-			t.__x || (t.__x = new be(t, e));
-		},
-		addMagicProperty: function (e, t) {
-			this.magicProperties[e] = t;
-		},
-		onComponentInitialized: function (e) {
-			this.onComponentInitializeds.push(e);
-		},
-		onBeforeComponentInitialized: function (e) {
-			this.onBeforeComponentInitializeds.push(e);
+		};
+		effect3(() => {
+			if (modifiers.includes('unintrusive') && document.activeElement.isSameNode(el)) return;
+			el._x_forceModelUpdate();
+		});
+	});
+	function generateAssignmentFunction(el, modifiers, expression) {
+		if (el.type === 'radio') {
+			mutateDom(() => {
+				if (!el.hasAttribute('name')) el.setAttribute('name', expression);
+			});
 		}
-	};
-	return (
-		r() ||
-			((window.Alpine = ge),
-			window.deferLoadingAlpine
-				? window.deferLoadingAlpine(function () {
-						window.Alpine.start();
-				  })
-				: window.Alpine.start()),
-		ge
+		return (event, currentValue) => {
+			return mutateDom(() => {
+				if (event instanceof CustomEvent && event.detail !== void 0) {
+					return event.detail;
+				} else if (el.type === 'checkbox') {
+					if (Array.isArray(currentValue)) {
+						let newValue = modifiers.includes('number')
+							? safeParseNumber(event.target.value)
+							: event.target.value;
+						return event.target.checked
+							? currentValue.concat([newValue])
+							: currentValue.filter((el2) => !checkedAttrLooseCompare2(el2, newValue));
+					} else {
+						return event.target.checked;
+					}
+				} else if (el.tagName.toLowerCase() === 'select' && el.multiple) {
+					return modifiers.includes('number')
+						? Array.from(event.target.selectedOptions).map((option) => {
+								let rawValue = option.value || option.text;
+								return safeParseNumber(rawValue);
+						  })
+						: Array.from(event.target.selectedOptions).map((option) => {
+								return option.value || option.text;
+						  });
+				} else {
+					let rawValue = event.target.value;
+					return modifiers.includes('number')
+						? safeParseNumber(rawValue)
+						: modifiers.includes('trim')
+						? rawValue.trim()
+						: rawValue;
+				}
+			});
+		};
+	}
+	function safeParseNumber(rawValue) {
+		let number = rawValue ? parseFloat(rawValue) : null;
+		return isNumeric2(number) ? number : rawValue;
+	}
+	function checkedAttrLooseCompare2(valueA, valueB) {
+		return valueA == valueB;
+	}
+	function isNumeric2(subject) {
+		return !Array.isArray(subject) && !isNaN(subject);
+	}
+
+	// packages/alpinejs/src/directives/x-cloak.js
+	directive('cloak', (el) => nextTick(() => mutateDom(() => el.removeAttribute(prefix('cloak')))));
+
+	// packages/alpinejs/src/directives/x-init.js
+	addRootSelector(() => `[${prefix('init')}]`);
+	directive(
+		'init',
+		skipDuringClone((el, { expression }) => evaluate(el, expression, {}, false))
 	);
-});
+
+	// packages/alpinejs/src/directives/x-text.js
+	directive('text', (el, { expression }, { effect: effect3 }) => {
+		let evaluate2 = evaluateLater(el, expression);
+		effect3(() => {
+			evaluate2((value) => {
+				mutateDom(() => {
+					el.textContent = value;
+				});
+			});
+		});
+	});
+
+	// packages/alpinejs/src/directives/x-bind.js
+	mapAttributes(startingWith(':', into(prefix('bind:'))));
+	directive('bind', (el, { value, modifiers, expression, original }, { effect: effect3 }) => {
+		if (!value) return applyBindingsObject(el, expression, original, effect3);
+		if (value === 'key') return storeKeyForXFor(el, expression);
+		let evaluate2 = evaluateLater(el, expression);
+		effect3(() =>
+			evaluate2((result) => {
+				mutateDom(() => bind(el, value, result, modifiers));
+			})
+		);
+	});
+	function applyBindingsObject(el, expression, original, effect3) {
+		let getBindings = evaluateLater(el, expression);
+		let cleanupRunners = [];
+		effect3(() => {
+			while (cleanupRunners.length) cleanupRunners.pop()();
+			getBindings((bindings) => {
+				let attributes = Object.entries(bindings).map(([name, value]) => ({ name, value }));
+				directives(el, attributes, original).map((handle) => {
+					cleanupRunners.push(handle.runCleanups);
+					handle();
+				});
+			});
+		});
+	}
+	function storeKeyForXFor(el, expression) {
+		el._x_keyExpression = expression;
+	}
+
+	// packages/alpinejs/src/directives/x-data.js
+	addRootSelector(() => `[${prefix('data')}]`);
+	directive(
+		'data',
+		skipDuringClone((el, { expression }, { cleanup: cleanup2 }) => {
+			expression = expression === '' ? '{}' : expression;
+			let dataProvider = getNamedDataProvider(expression);
+			let data2 = {};
+			if (dataProvider) {
+				let magics2 = injectMagics({}, el);
+				data2 = dataProvider.bind(magics2)();
+			} else {
+				data2 = evaluate(el, expression);
+			}
+			injectMagics(data2, el);
+			let reactiveData = reactive(data2);
+			initInterceptors(reactiveData);
+			let undo = addScopeToNode(el, reactiveData);
+			if (reactiveData['init']) reactiveData['init']();
+			cleanup2(() => {
+				undo();
+				reactiveData['destroy'] && reactiveData['destroy']();
+			});
+		})
+	);
+
+	// packages/alpinejs/src/directives/x-show.js
+	directive('show', (el, { modifiers, expression }, { effect: effect3 }) => {
+		let evaluate2 = evaluateLater(el, expression);
+		let hide = () =>
+			mutateDom(() => {
+				el.style.display = 'none';
+				el._x_isShown = false;
+			});
+		let show = () =>
+			mutateDom(() => {
+				if (el.style.length === 1 && el.style.display === 'none') {
+					el.removeAttribute('style');
+				} else {
+					el.style.removeProperty('display');
+				}
+				el._x_isShown = true;
+			});
+		let clickAwayCompatibleShow = () => setTimeout(show);
+		let toggle = once(
+			(value) => (value ? show() : hide()),
+			(value) => {
+				if (typeof el._x_toggleAndCascadeWithTransitions === 'function') {
+					el._x_toggleAndCascadeWithTransitions(el, value, show, hide);
+				} else {
+					value ? clickAwayCompatibleShow() : hide();
+				}
+			}
+		);
+		let oldValue;
+		let firstTime = true;
+		effect3(() =>
+			evaluate2((value) => {
+				if (!firstTime && value === oldValue) return;
+				if (modifiers.includes('immediate')) value ? clickAwayCompatibleShow() : hide();
+				toggle(value);
+				oldValue = value;
+				firstTime = false;
+			})
+		);
+	});
+
+	// packages/alpinejs/src/directives/x-for.js
+	directive('for', (el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+		let iteratorNames = parseForExpression(expression);
+		let evaluateItems = evaluateLater(el, iteratorNames.items);
+		let evaluateKey = evaluateLater(el, el._x_keyExpression || 'index');
+		el._x_prevKeys = [];
+		el._x_lookup = {};
+		effect3(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
+		cleanup2(() => {
+			Object.values(el._x_lookup).forEach((el2) => el2.remove());
+			delete el._x_prevKeys;
+			delete el._x_lookup;
+		});
+	});
+	function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+		let isObject2 = (i) => typeof i === 'object' && !Array.isArray(i);
+		let templateEl = el;
+		evaluateItems((items) => {
+			if (isNumeric3(items) && items >= 0) {
+				items = Array.from(Array(items).keys(), (i) => i + 1);
+			}
+			let lookup = el._x_lookup;
+			let prevKeys = el._x_prevKeys;
+			let scopes = [];
+			let keys = [];
+			if (isObject2(items)) {
+				items = Object.entries(items).map(([key, value]) => {
+					let scope = getIterationScopeVariables(iteratorNames, value, key, items);
+					evaluateKey((value2) => keys.push(value2), { scope: { index: key, ...scope } });
+					scopes.push(scope);
+				});
+			} else {
+				for (let i = 0; i < items.length; i++) {
+					let scope = getIterationScopeVariables(iteratorNames, items[i], i, items);
+					evaluateKey((value) => keys.push(value), { scope: { index: i, ...scope } });
+					scopes.push(scope);
+				}
+			}
+			let adds = [];
+			let moves = [];
+			let removes = [];
+			let sames = [];
+			for (let i = 0; i < prevKeys.length; i++) {
+				let key = prevKeys[i];
+				if (keys.indexOf(key) === -1) removes.push(key);
+			}
+			prevKeys = prevKeys.filter((key) => !removes.includes(key));
+			let lastKey = 'template';
+			for (let i = 0; i < keys.length; i++) {
+				let key = keys[i];
+				let prevIndex = prevKeys.indexOf(key);
+				if (prevIndex === -1) {
+					prevKeys.splice(i, 0, key);
+					adds.push([lastKey, i]);
+				} else if (prevIndex !== i) {
+					let keyInSpot = prevKeys.splice(i, 1)[0];
+					let keyForSpot = prevKeys.splice(prevIndex - 1, 1)[0];
+					prevKeys.splice(i, 0, keyForSpot);
+					prevKeys.splice(prevIndex, 0, keyInSpot);
+					moves.push([keyInSpot, keyForSpot]);
+				} else {
+					sames.push(key);
+				}
+				lastKey = key;
+			}
+			for (let i = 0; i < removes.length; i++) {
+				let key = removes[i];
+				lookup[key].remove();
+				lookup[key] = null;
+				delete lookup[key];
+			}
+			for (let i = 0; i < moves.length; i++) {
+				let [keyInSpot, keyForSpot] = moves[i];
+				let elInSpot = lookup[keyInSpot];
+				let elForSpot = lookup[keyForSpot];
+				let marker = document.createElement('div');
+				mutateDom(() => {
+					elForSpot.after(marker);
+					elInSpot.after(elForSpot);
+					marker.before(elInSpot);
+					marker.remove();
+				});
+				refreshScope(elForSpot, scopes[keys.indexOf(keyForSpot)]);
+			}
+			for (let i = 0; i < adds.length; i++) {
+				let [lastKey2, index] = adds[i];
+				let lastEl = lastKey2 === 'template' ? templateEl : lookup[lastKey2];
+				let scope = scopes[index];
+				let key = keys[index];
+				let clone2 = document.importNode(templateEl.content, true).firstElementChild;
+				addScopeToNode(clone2, reactive(scope), templateEl);
+				initTree(clone2);
+				mutateDom(() => {
+					lastEl.after(clone2);
+				});
+				lookup[key] = clone2;
+			}
+			for (let i = 0; i < sames.length; i++) {
+				refreshScope(lookup[sames[i]], scopes[keys.indexOf(sames[i])]);
+			}
+			templateEl._x_prevKeys = keys;
+		});
+	}
+	function parseForExpression(expression) {
+		let forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+		let stripParensRE = /^\(|\)$/g;
+		let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
+		let inMatch = expression.match(forAliasRE);
+		if (!inMatch) return;
+		let res = {};
+		res.items = inMatch[2].trim();
+		let item = inMatch[1].trim().replace(stripParensRE, '');
+		let iteratorMatch = item.match(forIteratorRE);
+		if (iteratorMatch) {
+			res.item = item.replace(forIteratorRE, '').trim();
+			res.index = iteratorMatch[1].trim();
+			if (iteratorMatch[2]) {
+				res.collection = iteratorMatch[2].trim();
+			}
+		} else {
+			res.item = item;
+		}
+		return res;
+	}
+	function getIterationScopeVariables(iteratorNames, item, index, items) {
+		let scopeVariables = {};
+		if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+			let names = iteratorNames.item
+				.replace('[', '')
+				.replace(']', '')
+				.split(',')
+				.map((i) => i.trim());
+			names.forEach((name, i) => {
+				scopeVariables[name] = item[i];
+			});
+		} else {
+			scopeVariables[iteratorNames.item] = item;
+		}
+		if (iteratorNames.index) scopeVariables[iteratorNames.index] = index;
+		if (iteratorNames.collection) scopeVariables[iteratorNames.collection] = items;
+		return scopeVariables;
+	}
+	function isNumeric3(subject) {
+		return !Array.isArray(subject) && !isNaN(subject);
+	}
+
+	// packages/alpinejs/src/directives/x-ref.js
+	function handler2() {}
+	handler2.inline = (el, { expression }, { cleanup: cleanup2 }) => {
+		let root = closestRoot(el);
+		if (!root._x_refs) root._x_refs = {};
+		root._x_refs[expression] = el;
+		cleanup2(() => delete root._x_refs[expression]);
+	};
+	directive('ref', handler2);
+
+	// packages/alpinejs/src/directives/x-if.js
+	directive('if', (el, { modifiers, expression }, { effect: effect3, cleanup: cleanup2 }) => {
+		let evaluate2 = evaluateLater(el, expression);
+		let show = () => {
+			if (el._x_currentIfEl) return el._x_currentIfEl;
+			let clone2 = el.content.cloneNode(true).firstElementChild;
+			el.after(clone2);
+			el._x_currentIfEl = clone2;
+			el._x_undoIf = () => {
+				clone2.remove();
+				delete el._x_currentIfEl;
+			};
+			return clone2;
+		};
+		let hide = () => el._x_undoIf?.() || delete el._x_undoIf;
+		effect3(() =>
+			evaluate2((value) => {
+				value ? show() : hide();
+			})
+		);
+		cleanup2(() => el._x_undoIf && el._x_undoIf());
+	});
+
+	// packages/alpinejs/src/directives/x-on.js
+	mapAttributes(startingWith('@', into(prefix('on:'))));
+	directive(
+		'on',
+		skipDuringClone((el, { value, modifiers, expression }, { cleanup: cleanup2 }) => {
+			let evaluate2 = expression ? evaluateLater(el, expression) : () => {};
+			let removeListener = on(el, value, modifiers, (e) => {
+				evaluate2(() => {}, { scope: { $event: e }, params: [e] });
+			});
+			cleanup2(() => removeListener());
+		})
+	);
+
+	// packages/alpinejs/src/index.js
+	alpine_default.setEvaluator(normalEvaluator);
+	alpine_default.setReactivityEngine({ reactive: reactive2, effect: effect2, release: stop, raw: toRaw });
+	var src_default = alpine_default;
+
+	// packages/alpinejs/builds/cdn.js
+	window.Alpine = src_default;
+	queueMicrotask(() => {
+		src_default.start();
+	});
+})();
