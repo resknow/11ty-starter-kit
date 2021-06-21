@@ -1,8 +1,6 @@
-<div
-    x-data="{ menuIsOpen: false }"
-    x-init="$watch('menuIsOpen', value => $dispatch('mobile-menu:state-change', value))"
->
-    <nav class="mobile-menu" :data-state="menuIsOpen ? 'open' : 'closed'">
+{% macro mobileMenu(items, phoneNumber) %}
+<div x-data>
+    <nav class="mobile-menu" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
         <ul>
             {% for link in items %}
             <li>
@@ -11,17 +9,17 @@
             {% endfor %}
         </ul>
 
-        {% if phone %}
+        {% if phoneNumber %}
         <div class="mobile-menu__phone">
             <p class="uppercase c-gray-70 tracking-wide size-sm">Call Us</p>
-            <a href="tel:{{ phone }}">{{ phone }}</a>
+            <a href="tel:{{ phoneNumber }}">{{ phoneNumber }}</a>
         </div>
         {% endif %}
     </nav>
 
     <button
-        @click="menuIsOpen = !menuIsOpen"
-        :data-state="menuIsOpen ? 'open' : 'closed'"
+        @click="$store.menuIsOpen = !$store.menuIsOpen"
+        :data-state="$store.menuIsOpen ? 'open' : 'closed'"
         class="hamburger"
     >
         <span class="bar"></span>
@@ -29,3 +27,4 @@
         <span class="bar"></span>
     </button>
 </div>
+{% endmacro %}

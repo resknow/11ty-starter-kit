@@ -5,6 +5,12 @@ module.exports = {
 	name: `11ty Starter`,
 
 	/**
+	 * Company Information
+	 */
+	phone: '0208 300 8833',
+	address: '13 St Johns Parade, Sidcup, Kent, DA14 6ES',
+
+	/**
 	 * Site URL, we use this in the Sitemap
 	 */
 	url: `http://localhost:8080`,
@@ -35,7 +41,7 @@ module.exports = {
 	 * For page specific javascript, use the same keys in
 	 * frontmatter.
 	 */
-	scripts: [`/assets/js/alpine.js`],
+	scripts: [`/bundle.js`],
 
 	/**
 	 * Cookie Consent

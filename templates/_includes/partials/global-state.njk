@@ -1,0 +1,13 @@
+{#---
+
+If you need some global component state, define it here using Alpine.store().
+
+The default mobile menu component uses it to set it's open/closed state so
+outside elements can react to it.
+
+---#}
+<script>
+    document.addEventListener('alpine:initializing', () => {
+        Alpine.store( 'menuIsOpen', false );
+    });
+</script>

@@ -1,11 +1,11 @@
-{% set items = site.menus.main %}
-{% set phone = "0208 300 8833" %}
+{% from "macros/menu/macro.njk" import menu %}
+{% from "macros/mobile-menu/macro.njk" import mobileMenu %}
 
 <header class="px-8 py-4">
     <div class="container flex justify-between items-center">
         <a class="size-lg weight-bold" href="/">{{ site.name }}</a>
 
-        {% include "components/mobile-menu.njk" %}
-        {% include "components/menu.njk" %}
+        {{ mobileMenu(site.menus.main, site.phone) }}
+        {{ menu(site.menus.main) }}
     </div>
 </header>

@@ -212,3 +212,8 @@ h4,
 		scroll-behavior: auto !important;
 	}
 }
+
+/* Override Cookie Consent button color */
+cookie-consent-banner button {
+	color: var(--color-white, white);
+}
