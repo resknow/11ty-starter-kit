@@ -10,6 +10,5 @@ You'll find customisable design tokens in `./assets/sass/_tokens.scss`. These ar
 
 ### Available Utilities
 
-#### Alignment
-
-For use with `flex` containers, responsive utility classes for properties like `align-items` and `justify-content`. See the full list in `./assets/sass/utilities/_alignment.scss`.
+| Alignment | For use with `flex` containers, responsive utility classes for properties like `align-items` and `justify-content`. See the full list in `./assets/sass/utilities/_alignment.scss`. |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
