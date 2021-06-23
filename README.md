@@ -4,6 +4,7 @@
 
 -   Boilerplate HTML (responsive meta tag, favicons etc.)
 -   Starter CSS (with SCSS)
+-   `esbuild` Javascript bundling
 -   AlpineJS
 -   Design Tokens
 -   Responsive typescale using `clamp`
