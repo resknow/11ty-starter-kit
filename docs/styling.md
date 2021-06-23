@@ -25,3 +25,5 @@ You'll find customisable design tokens in `./assets/sass/_tokens.scss`. These ar
 | Max Width     | Limit the width of an element based on characters per line.                                                         | `./assets/sass/utilities/_max-width.scss`     | 🚫         |
 | Shadow        | A set of `box-shadow` utilities, generated from your tokens.                                                        | `./assets/sass/utilities/_shadow.scss`        | 🚫         |
 | Space         | Utilites for padding, margin and gap properties, generated from your tokens.                                        | `./assets/sass/utilities/_space.scss`         | 🚫         |
+
+**A note about responsive variants** Be mindful when adding responsive variants, they generate 4x the amount of CSS with the default breakpoints, which you probably won't use. That's why only common layout utilities have them by default. Only use them if you know you'll use them.
