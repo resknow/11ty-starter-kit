@@ -3,16 +3,21 @@
 ## What's included?
 
 -   Boilerplate HTML (responsive meta tag, favicons etc.)
--   Starter CSS
+-   Starter CSS (with SCSS)
+-   AlpineJS
 -   Design Tokens
 -   Responsive typescale using `clamp`
 -   SEO ready
 -   Custom 404 page
 -   Eleventy Navigation plugin
+-   Eleventy Forms plugin
+-   Common page templates (Contact, more coming soon)
+-   Common layout examples with code snippets (run `npm run demo` to see them)
 
 ## Roadmap
 
--   Create a skeleton site to get started with
+-   Add more layouts examples
+-   Add more page templates
 
 ## Get Started
 
