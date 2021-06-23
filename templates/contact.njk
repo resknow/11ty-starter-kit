@@ -1,0 +1,31 @@
+---
+title: Contact Us
+scripts:
+    - https://unpkg.com/postform-js/dist/postform.js
+    - https://maps.googleapis.com/maps/api/js?key=AIzaSyAeP_G3ffklPHmkCIdhkVGq0GtzhusHHls
+    - /assets/js/wc-google-map.js
+---
+
+<div class="block-area | mt-20">
+    <h1 class="align-center">Contact Us</h1>
+    <div class="is-wide | grid gap-10 align-center md:cols-3">
+        <div class="px-6">
+            <strong class="font-heading c-gray-50 label">Phone</strong>
+            <p class="weight-bold">
+                <a class="size-lg c-brand" href="tel:{{ site.phone }}">{{ site.phone }}</a>
+            </p>
+        </div>
+        <div class="px-6">
+            <strong class="font-heading c-gray-50 label">E-mail</strong>
+            <p class="email-address weight-bold">{{ site.email | reverse }}</p>
+        </div>
+        <div class="px-6">
+            <strong class="font-heading c-gray-50 label">Address</strong>
+            <p>{{ site.address }}</p>
+        </div>
+    </div>
+
+    {% renderForm "contactForm" %}
+
+    <wc-google-map class="is-full" lat={{ site.location.lat }} lng={{ site.location.lng }} zoom="15"></wc-google-map>
+</div>
