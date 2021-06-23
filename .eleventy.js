@@ -7,7 +7,7 @@ const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
 const eleventyFormPlugin = require('eleventy-plugin-forms');
 const syntaxHighlight = require('@11ty/eleventy-plugin-syntaxhighlight');
 const iconShortcode = require('./functions/shortcode.icon');
-const formConfig = require('templates/_data/forms');
+const formConfig = require('./templates/_data/forms');
 
 module.exports = (eleventyConfig) => {
 	isDemoMode && console.warn(`*** ⚠ Running in demo mode ⚠ ***`);
