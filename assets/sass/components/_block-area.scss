@@ -1,3 +1,17 @@
+/**
+ * Block Area
+ *
+ * Used mainly for full page layouts, implemented using CSS Grid
+ *
+ * By default, content will be placed in the center column, but can be
+ * adjusted using provided modifier classes:
+ *
+ * .is-wide Causes content to span an extra column each side of the main content
+ * .is-full Causes content to span the full with of the page
+ *
+ * Block areas can be nested if you need to keep consistency between sections
+ */
+
 .block-area {
 	--gutter: var(--space-8, 2rem);
 	--columns: var(--gutter) calc(var(--gutter) / 2) 1fr calc(var(--gutter) / 2) var(--gutter);
@@ -7,10 +21,12 @@
 	row-gap: var(--row-gap, var(--space-16));
 }
 
+/* Place content in the center */
 .block-area > * {
 	grid-column: 2 / span 3;
 }
 
+/* Set some sensible spacing defaults for text content */
 .block-area > h1 + p,
 .block-area > h2 + p,
 .block-area > h3 + p,

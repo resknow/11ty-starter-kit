@@ -27,3 +27,17 @@ You'll find customisable design tokens in `./assets/sass/_tokens.scss`. These ar
 | Space         | Utilites for padding, margin and gap properties, generated from your tokens.                                        | `./assets/sass/utilities/_space.scss`         | 🚫         |
 
 **A note about responsive variants** Be mindful when adding responsive variants, they generate 4x the amount of CSS with the default breakpoints, which you probably won't use. That's why only common layout utilities have them by default. Only use them if you know you'll use them.
+
+## Components
+
+Components are groups of styles that you'll apply to something that is going to be re-used. There are some provided for you.
+
+| Component   | Description                                                          | File                                           |
+| ----------- | -------------------------------------------------------------------- | ---------------------------------------------- |
+| Block Area  | Layout component for building out most page layouts.                 | `./assets/sass/components/_block-area.scss`    |
+| Button      | Button component styles, includes size and colour variations.        | `./assets/sass/components/_button.scss`        |
+| Checkbox    | An accessible custom implenetation for checkboxes and radio buttons. | `./assets/sass/components/_checkbox.scss`      |
+| Form        | Sensible defaults for form styling.                                  | `./assets/sass/components/_form.scss`          |
+| Menu        | Main menu styles                                                     | `./assets/sass/components/_menu.scss`          |
+| Mobile Menu | Mobile Main menu styles, includes a hamburger                        | `./assets/sass/components/_mobile-menu.scss`   |
+| Google Map  | Default styling for Google Maps web component                        | `./assets/sass/components/_wc-google-map.scss` |
