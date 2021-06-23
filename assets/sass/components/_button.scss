@@ -29,17 +29,17 @@
 	--btn-transition: all 150ms ease-in-out;
 }
 
-.btn[data-size='sm'] {
+.btn--sm {
 	--btn-padding: var(--space-2) var(--space-4);
 }
 
-.btn[data-size='lg'] {
+.btn--lg {
 	--btn-padding: var(--space-3) var(--space-8);
 	--btn-font-size: var(--size-lg);
 }
 
 @each $key, $value in token('color') {
-	.btn[data-color='#{$key}'] {
+	.btn--#{$key} {
 		--btn-background-color: #{$value};
 		--btn-color: #{auto-color($value)};
 	}
