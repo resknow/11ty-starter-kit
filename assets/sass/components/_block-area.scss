@@ -1,11 +1,10 @@
 .block-area {
 	--gutter: var(--space-8, 2rem);
-	--columns: var(--gutter) calc(var(--gutter) / 2) 1fr calc(var(--gutter) / 2)
-		var(--gutter);
+	--columns: var(--gutter) calc(var(--gutter) / 2) 1fr calc(var(--gutter) / 2) var(--gutter);
 
 	display: grid;
 	grid-template-columns: var(--columns);
-	row-gap: var(--row-gap, var(--space-10));
+	row-gap: var(--row-gap, var(--space-16));
 }
 
 .block-area > * {
@@ -31,13 +30,13 @@
 	--row-gap: var(--space-4);
 }
 
-.block-area > .alignwide,
-.block-area > .alignfull {
+.block-area > .is-wide,
+.block-area > .is-full {
 	grid-column: 1 / -1;
 }
 
 @media (min-width: 460px) {
-	.block-area > .alignwide {
+	.block-area > .is-wide {
 		grid-column: 2 / span 3;
 	}
 }
@@ -56,15 +55,14 @@
 @media (min-width: 1024px) {
 	.block-area {
 		--content-width: 720px;
-		--columns: var(--gutter) 1fr 1fr var(--content-width) 1fr 1fr
-			var(--gutter);
+		--columns: var(--gutter) 1fr 1fr var(--content-width) 1fr 1fr var(--gutter);
 	}
 
 	.block-area > * {
 		grid-column: 4;
 	}
 
-	.block-area > .alignwide {
+	.block-area > .is-wide {
 		grid-column: 3 / span 3;
 	}
 }
