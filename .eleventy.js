@@ -4,8 +4,10 @@ const isDemoMode = process.env.DEMO_MODE || false;
 
 const fs = require('fs');
 const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
+const eleventyFormPlugin = require('eleventy-plugin-forms');
 const syntaxHighlight = require('@11ty/eleventy-plugin-syntaxhighlight');
 const iconShortcode = require('./functions/shortcode.icon');
+const formConfig = require('templates/_data/forms');
 
 module.exports = (eleventyConfig) => {
 	isDemoMode && console.warn(`*** ⚠ Running in demo mode ⚠ ***`);
@@ -15,6 +17,9 @@ module.exports = (eleventyConfig) => {
 
 	// Plugins
 	eleventyConfig.addPlugin(eleventyNavigationPlugin);
+	eleventyConfig.addPlugin(eleventyFormPlugin, {
+		forms: { ...formConfig }
+	});
 	eleventyConfig.addPlugin(syntaxHighlight);
 
 	// Custom Watch Targets

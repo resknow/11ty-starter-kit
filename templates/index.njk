@@ -2,7 +2,6 @@
 title: Home
 description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Type Scale and Cypress Testing.
 ---
-
 <section class="block-area">
     <main class="flow flow-space-20 mw-md py-32">
         <header class="flow flow-space-2">
@@ -14,6 +13,9 @@ description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Ty
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus et tellus libero. Etiam turpis magna, posuere nec lorem et, pulvinar fringilla leo. Aenean et lorem libero. </p>
             <a class="btn" data-size="sm" data-color="neutral" href="#">Nice button</a>
         </article>
+        <div>
+            {% renderForm "contactForm" %}
+        </div>
     </main>
 
     <div class="alignwide bg-gray-10 px-20 py-8">Make content wider with the <code>.alignwide</code> class</div>
