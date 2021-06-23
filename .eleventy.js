@@ -17,10 +17,10 @@ module.exports = (eleventyConfig) => {
 
 	// Plugins
 	eleventyConfig.addPlugin(eleventyNavigationPlugin);
+	eleventyConfig.addPlugin(syntaxHighlight);
 	eleventyConfig.addPlugin(eleventyFormPlugin, {
 		forms: { ...formConfig }
 	});
-	eleventyConfig.addPlugin(syntaxHighlight);
 
 	// Custom Watch Targets
 	eleventyConfig.addWatchTarget('kubas.config.js');
