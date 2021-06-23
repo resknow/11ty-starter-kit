@@ -7,8 +7,13 @@ module.exports = {
 	/**
 	 * Company Information
 	 */
+	email: `info@resknow.co.uk`,
 	phone: '0208 300 8833',
 	address: '13 St Johns Parade, Sidcup, Kent, DA14 6ES',
+	location: {
+		lat: `51.42492021179657`,
+		lng: `0.10547518730163574`
+	},
 
 	/**
 	 * Site URL, we use this in the Sitemap
