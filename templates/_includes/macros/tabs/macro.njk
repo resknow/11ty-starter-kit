@@ -1,0 +1,31 @@
+{#
+
+    id: Unique ID for this set of tabs, required if you have more than one per page
+    items: Tab content, each item requires title and content.
+
+#}
+{% macro tabs(_) %}
+    {% set id = _.id | default('tab') %}
+
+    <div x-data="{ activeTab: 1 }" class="tabs">
+        <nav class="tabs__nav">
+            <ul class="cluster">
+                {% for item in _.items %}
+                <li>
+                    <a @click.prevent="activeTab = {{ loop.index }}" href="#{{ id }}-{{ loop.index }}">{{ item.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% for item in _.items %}
+        <div
+            id="{{ id }}-{{ loop.index }}"
+            x-show="activeTab === {{ loop.index }}"
+            :aria-current="activeTab === {{ loop.index }}"
+            class="tab"
+        >
+            {{ item.content | safe }}
+        </div>
+        {% endfor %}
+    </div>
+{% endmacro %}

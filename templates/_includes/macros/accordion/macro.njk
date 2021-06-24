@@ -1,0 +1,39 @@
+{#
+
+    id: Unique ID for this set of tabs, required if you have more than one per page
+    items: Accordion content, each item requires title and content.
+    class: Optional class to add to the component wrapper
+
+#}
+
+{% macro accordion(_) %}
+    {% set id = _.id | default('item') %}
+
+    <div class="accordion {{ _.class }}" x-data="{ activeItem: '' }">
+        {% for item in _.items %}
+        <h3
+            class="accordion__heading | size-base"
+            :data-state="activeItem === '{{ id }}-{{ loop.index }}' ? 'active' : 'inactive'"
+            @click="activeItem = (activeItem !== '{{ id }}-{{ loop.index }}' ? '{{ id }}-{{ loop.index }}' : '')"
+        >
+            <button
+                id="accordion-button-{{ id }}-{{ loop.index }}"
+                aria-controls="accordion-panel-{{ id }}-{{ loop.index }}"
+                :aria-expanded="activeItem === '{{ id }}-{{ loop.index }}'"
+            >
+                {{ item.title }}
+            </button>
+            {% icon "caret-down", "accordion__heading-icon" %}
+        </h3>
+        <div
+            class="accordion__panel"
+            :hidden="activeItem !== '{{ id }}-{{ loop.index }}'"
+            id="accordion-panel-{{ id }}-{{ loop.index }}"
+            aria-labelledby="accordion-button-{{ id }}-{{ loop.index }}"
+            tabindex="-1"
+        >
+            {{ item.content | safe }}
+        </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
