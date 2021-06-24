@@ -33,7 +33,8 @@ module.exports = {
 				children: [
 					{ label: 'Buttons', href: '/examples/buttons/' },
 					{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
-					{ label: 'Icons', href: '/examples/icons/' }
+					{ label: 'Icons', href: '/examples/icons/' },
+					{ label: 'Accordion & Tabs', href: '/examples/tabs/' }
 				]
 			}
 		]
