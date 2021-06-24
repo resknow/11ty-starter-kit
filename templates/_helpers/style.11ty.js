@@ -30,7 +30,7 @@ module.exports = class {
 		let compiledCSS = css.toString();
 
 		// Purge CSS
-		if (site.purgeCSS === true || process.env.ENV === 'production') {
+		if (site.purgeCSS === true || process.env.NODE_ENV === 'production') {
 			let result = await new PurgeCSS().purge({
 				css: [
 					{

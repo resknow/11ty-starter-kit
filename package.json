@@ -4,9 +4,9 @@
 	"description": "An SEO ready starter kit for 11ty with Design Tokens, Responsive Type Scale and Cypress Testing.",
 	"main": ".eleventy.js",
 	"scripts": {
-		"build": "npm-run-all eleventy:build",
-		"dev": "npm-run-all eleventy:serve",
-		"demo": "DEMO_MODE=true npm-run-all eleventy:serve",
+		"build": "NODE_ENV=production npm-run-all eleventy:build",
+		"dev": "NODE_ENV=development npm-run-all eleventy:serve",
+		"demo": "NODE_ENV=development DEMO_MODE=true npm-run-all eleventy:serve",
 		"eleventy:serve": "eleventy --serve",
 		"eleventy:build": "eleventy",
 		"test": "npm-run-all --parallel dev cypress",
