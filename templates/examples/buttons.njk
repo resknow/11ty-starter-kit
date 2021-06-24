@@ -1,0 +1,70 @@
+---
+title: Buttons
+---
+{% from "macros/show-code/macro.njk" import showCode %}
+
+<section class="block-area py-20" style="--row-gap: var(--space-20)">
+
+    <header class="flow flow-space-2">
+        <h1>Buttons</h1>
+        <p>Every website has at least one button, so here's a few variants.</p>
+    </header>
+
+    <main class="flow flow-space-20">
+
+        {% set buttons %}
+<!-- Small button -->
+<button class="btn btn--sm">Small button</button>
+
+<!-- Button -->
+<button class="btn">Button</button>
+
+<!-- Large button -->
+<button class="btn btn--lg">Large button</button>
+
+<!-- Full width button -->
+<button class="btn btn--full-width">Full width button</button>
+
+<!-- Positive button -->
+<button class="btn btn--positive">`positive` colour button</button>
+
+<!-- Negative button -->
+<button class="btn btn--negative">`negative` colour button</button>
+
+<!-- Neutral button -->
+<button class="btn btn--neutral">`neutral` colour button</button>
+
+<!-- Button with an icon -->
+<button class="btn">
+    {% icon "instagram", "size-lg" %}
+    <span>Button with a icon</span>
+</button>
+
+<!-- Button group -->
+<div class="btn-group gap-1">
+    <button class="btn">Group</button>
+    <button class="btn">of</button>
+    <button class="btn">buttons</button>
+</div>
+        {% endset %}
+
+        <div class="flow flow-space-3">
+            {{ buttons | safe }}
+        </div>
+
+        <div class="flow flow-space-2">
+            <h3>Usage</h3>
+            {% highlight "html" %}
+                {{ buttons | safe }}
+            {% endhighlight %}
+        </div>
+
+        <div class="flow">
+            <h3>Notes</h3>
+            <p>Buttons can be any valid button element (<code>a</code>, <code>button</code>, <code>input[type="button"]</code>, <code>input[type="submit"]</code>). Don't use non-semantic elements as buttons as you use all of the accessibility benefits.</p>
+            <p>Variants can be combined to make all kinds of button types. For example, <code>btn btn--lg btn--full-width</code> will get you a large, full width button.</p>
+        </div>
+
+    </main>
+
+</section>

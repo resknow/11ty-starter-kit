@@ -3,16 +3,18 @@ title: Home
 description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Type Scale and Cypress Testing.
 ---
 <section class="block-area">
+
     <main class="flow flow-space-20 mw-md py-32">
         <header class="flow flow-space-2">
             <h1 class="size-4xl">11ty Starter</h1>
             <p class="c-gray-90">Everything you need to get up and running quickly with a new 11ty site.</p>
         </header>
+        {% if util.isDemo %}
         <article class="flow">
-            <h2>Example Content</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus et tellus libero. Etiam turpis magna, posuere nec lorem et, pulvinar fringilla leo. Aenean et lorem libero. </p>
-            <a class="btn btn--sm btn--neutral" href="#">Nice button</a>
+            <h2>Examples</h2>
+            <p>Checkout the examples section for examples of common layouts and components.</p>
         </article>
+        {% endif %}
     </main>
 
     <div class="is-wide bg-gray-10 px-20 py-8">Make content wider with the <code>.is-wide</code> class</div>
@@ -28,4 +30,5 @@ description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Ty
         <!-- Component: Designed by / Credit -->
         {% include "partials/designed-by.njk" %}
     </footer>
+
 </section>

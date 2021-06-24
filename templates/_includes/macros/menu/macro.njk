@@ -2,9 +2,30 @@
     <nav class="menu">
         <ul class="flex gap-6">
             {% for link in items %}
-            <li class="menu__item">
-                <a class="menu__link" href="{{ link.href }}">{{ link.label }}</a>
-            </li>
+                {% if link.condition | default(true) %}
+                    {% if link.children %}
+                    <li x-data="{ isOpen: false }" class="menu__item">
+                        <a @click.prevent="isOpen = !isOpen" href="{{ link.href }}" class="flex items-center">
+                            <span>{{ link.label }}</span>
+                            {% icon "caret-down", "ml-2 size-sm" %}
+                        </a>
+
+                        {% if link.children %}
+                        <ul x-show="isOpen" @click.outside="isOpen = false" x-transition class="menu__dropdown | flow flow-space-2">
+                            {% for child in link.children %}
+                            <li>
+                                <a href="{{ child.href }}">{{ child.label }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="menu__item">
+                        <a href="{{ link.href }}">{{ link.label }}</a>
+                    </li>
+                    {% endif %}
+                {% endif %}
             {% endfor %}
         </ul>
     </nav>

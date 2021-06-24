@@ -26,8 +26,16 @@ module.exports = {
 	menus: {
 		main: [
 			{ label: 'Home', href: '/' },
-			{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
-			{ label: 'Icons', href: '/examples/icons/' }
+			{
+				label: 'Examples',
+				href: '#',
+				condition: process.env.DEMO_MODE || false,
+				children: [
+					{ label: 'Buttons', href: '/examples/buttons/' },
+					{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
+					{ label: 'Icons', href: '/examples/icons/' }
+				]
+			}
 		]
 	},
 

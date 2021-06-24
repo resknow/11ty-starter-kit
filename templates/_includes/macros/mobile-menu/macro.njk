@@ -3,9 +3,21 @@
     <nav class="mobile-menu" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
         <ul>
             {% for link in items %}
-            <li>
-                <a href="{{ link.href }}">{{ link.label }}</a>
-            </li>
+                {% if link.condition | default(true) %}
+                <li>
+                    <a href="{{ link.href }}">{{ link.label }}</a>
+
+                    {% if link.children %}
+                        <ul class="mobile-menu__dropdown | ml-4">
+                            {% for child in link.children %}
+                            <li>
+                                <a href="{{ child.href }}">{{ child.label }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+                {% endif %}
             {% endfor %}
         </ul>
 

@@ -56,11 +56,15 @@ $hideMobileMenuAt: $showMenuAt !default;
 	}
 
 	a {
-		color: var(--link-color, blue);
+		color: var(--link-color, var(--color-gray-70));
 		font-weight: var(--weight-bold, 700);
 		display: block;
 		padding: var(--space-4, 16px) var(--space-8, 32px);
 		text-decoration: none;
+	}
+
+	.mobile-menu__dropdown a {
+		font-weight: var(--weight-normal, 400);
 	}
 
 	.mobile-menu__phone {
