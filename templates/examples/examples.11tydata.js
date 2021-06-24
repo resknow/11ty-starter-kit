@@ -7,10 +7,7 @@ const frontMatter = {
 };
 
 if (!process.env.DEMO_MODE) {
-	frontMatter = {
-		...frontMatter,
-		permalink: false
-	};
+	frontMatter.permalink = false;
 }
 
 module.exports = {
