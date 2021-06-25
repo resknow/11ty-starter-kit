@@ -13,10 +13,14 @@ module.exports = class {
 	}
 
 	async render() {
-		_(chalk.blue('🙂 Bundling Javascript'));
-
 		let inputFiles = await globby('./assets/js/bundle/*.js');
-		if (inputFiles.length === 0) return;
+
+		if (inputFiles.length === 0) {
+			_(chalk.red('😕 No Javascript to bundle, skipping...'));
+			return;
+		}
+
+		_(chalk.blue(`🙂 Bundling ${inputFiles.length} Javascript files`));
 
 		let output = [];
 
