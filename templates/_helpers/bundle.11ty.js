@@ -1,8 +1,3 @@
-/**
- * Adapted from Adam K Dean
- * @see https://dev.to/adamkdean/simple-scss-with-11ty-kmn
- */
-
 const esbuild = require('esbuild');
 const globby = require('globby');
 const chalk = require('chalk');
