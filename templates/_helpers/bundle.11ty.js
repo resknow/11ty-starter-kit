@@ -5,7 +5,6 @@
 
 const esbuild = require('esbuild');
 const globby = require('globby');
-const siteConfig = require('../_data/site');
 const chalk = require('chalk');
 const _ = console.log;
 
