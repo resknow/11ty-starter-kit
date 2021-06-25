@@ -68,5 +68,16 @@ module.exports = {
 	 */
 	cookieConsent: {
 		show: true
+	},
+
+	/**
+	 * CSS Options
+	 *
+	 * Both options are set to true automatically during production
+	 * build, manually set them here if you want to test them locally.
+	 */
+	css: {
+		// purge: true,
+		// minify: true
 	}
 };

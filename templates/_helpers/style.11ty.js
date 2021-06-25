@@ -34,7 +34,7 @@ module.exports = class {
 		let compiledCSS = css.toString();
 
 		// Purge CSS
-		if (site.purgeCSS === true || process.env.NODE_ENV === 'production') {
+		if (site?.css?.purge === true || process.env.NODE_ENV === 'production') {
 			_(chalk.greenBright('🚮 Purging unused CSS'));
 
 			let result = await new PurgeCSS().purge({
@@ -60,7 +60,13 @@ module.exports = class {
 				purgedCSS.push(item.css);
 			});
 
-			return purgedCSS.join('\n');
+			compiledCSS = purgedCSS.join('\n');
+		}
+
+		// Minify?
+		if (site?.css?.minify === true || process.env.NODE_ENV === 'production') {
+			_(chalk.blue('📦 Minifying CSS'));
+			compiledCSS = new cleanCSS().minify(compiledCSS).styles;
 		}
 
 		return compiledCSS;
