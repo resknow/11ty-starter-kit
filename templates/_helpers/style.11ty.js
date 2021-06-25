@@ -9,6 +9,8 @@ const cleanCSS = require('clean-css');
 const { PurgeCSS } = require('purgecss');
 const purgecssConfig = require('../../purgecss.config');
 const site = require('../_data/site');
+const chalk = require('chalk');
+const _ = console.log;
 
 module.exports = class {
 	data() {
@@ -20,6 +22,8 @@ module.exports = class {
 	}
 
 	async render() {
+		_(chalk.blue('😃 Compiling CSS'));
+
 		// Compile SCSS
 		const { css } = sass.renderSync({
 			importer: globImporter(),
@@ -31,6 +35,8 @@ module.exports = class {
 
 		// Purge CSS
 		if (site.purgeCSS === true || process.env.NODE_ENV === 'production') {
+			_(chalk.greenBright('🚮 Purging unused CSS'));
+
 			let result = await new PurgeCSS().purge({
 				css: [
 					{
@@ -58,6 +64,5 @@ module.exports = class {
 		}
 
 		return compiledCSS;
-		// return new cleanCSS({}).minify(css.toString()).styles;
 	}
 };
