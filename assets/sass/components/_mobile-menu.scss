@@ -1,5 +1,6 @@
 $hideMobileMenuAt: $showMenuAt !default;
 
+/*! purgecss start ignore */
 .hamburger {
 	--bar-color: var(--color-black, black);
 
@@ -89,3 +90,4 @@ $hideMobileMenuAt: $showMenuAt !default;
 		display: none;
 	}
 }
+/*! purgecss end ignore */
