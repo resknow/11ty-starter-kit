@@ -1,34 +1,37 @@
 module.exports = {
 	contactForm: {
 		name: 'Contact Form',
-		action: 'https://f.postform.dev/FylcY78OmiFIX6mzW2LmSaHishPGqGme',
-		method: 'post',
-		className: ['flow'],
+		attributes: {
+			action: 'https://f.postform.dev/FylcY78OmiFIX6mzW2LmSaHishPGqGme',
+			method: 'post',
+			class: 'flow',
+			postform: '',
+		},
 		fields: [
 			{
 				name: 'name',
-				label: 'Your Name'
+				label: 'Your Name',
 			},
 			{
 				name: 'phone',
 				type: 'tel',
-				label: 'Phone Number'
+				label: 'Phone Number',
 			},
 			{
 				name: 'email',
 				type: 'email',
-				label: 'Email Address'
+				label: 'Email Address',
 			},
 			{
 				name: 'message',
 				type: 'textarea',
-				label: 'Message'
+				label: 'Message',
 			},
 			{
 				name: 'submit',
 				label: 'Send',
-				className: ['btn']
-			}
-		]
-	}
+				class: ['btn'],
+			},
+		],
+	},
 };

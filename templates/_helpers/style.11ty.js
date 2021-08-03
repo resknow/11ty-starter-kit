@@ -6,8 +6,6 @@
 const sass = require('sass');
 const globImporter = require('node-sass-glob-importer');
 const cleanCSS = require('clean-css');
-const { PurgeCSS } = require('purgecss');
-const purgecssConfig = require('../../purgecss.config');
 const site = require('../_data/site');
 const chalk = require('chalk');
 const _ = console.log;
@@ -17,7 +15,7 @@ module.exports = class {
 		return {
 			layout: false,
 			permalink: '/style.css',
-			eleventyExcludeFromCollections: true
+			eleventyExcludeFromCollections: true,
 		};
 	}
 
@@ -28,40 +26,10 @@ module.exports = class {
 		const { css } = sass.renderSync({
 			importer: globImporter(),
 			file: './assets/sass/style.scss',
-			...(site.sassOptions || {})
+			...(site.sassOptions || {}),
 		});
 
 		let compiledCSS = css.toString();
-
-		// Purge CSS
-		if (site?.css?.purge === true || process.env.NODE_ENV === 'production') {
-			_(chalk.greenBright('🚮 Purging unused CSS'));
-
-			let result = await new PurgeCSS().purge({
-				css: [
-					{
-						raw: compiledCSS
-					}
-				],
-				extractors: [
-					{
-						extractor: (content) => {
-							return content.match(/[A-Za-z0-9-_:\/]+/g) || [];
-						},
-						extensions: ['css', 'html', 'njk', 'js']
-					}
-				],
-				...purgecssConfig
-			});
-
-			let purgedCSS = [];
-
-			result.forEach((item) => {
-				purgedCSS.push(item.css);
-			});
-
-			compiledCSS = purgedCSS.join('\n');
-		}
 
 		// Minify?
 		if (site?.css?.minify === true || process.env.NODE_ENV === 'production') {
