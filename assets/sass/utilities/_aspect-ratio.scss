@@ -1,0 +1,5 @@
+@each $token, $value in token('aspect-ratio') {
+	.aspect-ratio-#{$token} {
+		aspect-ratio: #{$value};
+	}
+}

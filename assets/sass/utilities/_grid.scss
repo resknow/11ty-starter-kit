@@ -1,11 +1,17 @@
 $grid-columns: 12 !default;
-$grid-rows: auto !default;
 
 .grid {
 	display: grid;
 	grid-template-columns: repeat(var(--grid-columns, 1), 1fr);
-	grid-template-rows: repeat(var(--grid-rows, $grid-rows), 1fr);
 	gap: var(--gap);
+}
+
+/** Auto Grid **/
+.auto-grid {
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(var(--min-width, 10rem), 1fr)
+	);
 }
 
 @for $i from 1 through $grid-columns {
@@ -19,18 +25,6 @@ $grid-rows: auto !default;
 
 	.col-span-#{$i} {
 		grid-column-end: span #{i};
-	}
-
-	.rows-#{$i} {
-		--grid-rows: #{$i};
-	}
-
-	.row-start-#{$i} {
-		grid-row-start: #{$i};
-	}
-
-	.row-span-#{$i} {
-		grid-row-end: span #{i};
 	}
 }
 
@@ -47,18 +41,6 @@ $grid-rows: auto !default;
 
 			.#{$breakpoint}\:col-span-#{$i} {
 				grid-column-end: span #{$i};
-			}
-
-			.#{$breakpoint}\:rows-#{$i} {
-				--grid-rows: #{$i};
-			}
-
-			.#{$breakpoint}\:row-start-#{$i} {
-				grid-row-start: #{$i};
-			}
-
-			.#{$breakpoint}\:row-span-#{$i} {
-				grid-row-end: span #{i};
 			}
 		}
 	}

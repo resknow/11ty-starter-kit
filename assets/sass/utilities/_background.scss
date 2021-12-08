@@ -1,5 +1,8 @@
-.bg-cover {
+[class^='bg-'] {
 	background-image: var(--image);
+}
+
+.bg-cover {
 	background-position: center;
 	background-size: cover;
 }
