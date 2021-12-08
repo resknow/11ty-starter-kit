@@ -1,0 +1,9 @@
+.media {
+	aspect-ratio: var(--media-aspect-ratio, 16 / 9);
+
+	@each $token, $value in token('aspect-ratio') {
+		&[data-ratio='#{$token}'] {
+			--media-aspect-ratio: #{$value};
+		}
+	}
+}
