@@ -2,7 +2,14 @@
 .cluster {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: flex-start;
 	align-items: center;
 	gap: var(--gap, 1em);
+}
+
+/**
+ * Set the default justify-content with a :where for low specificity
+ * This means we can override it easily with our alignment utilities.
+ */
+:where(.cluster) {
+	justify-content: start;
 }

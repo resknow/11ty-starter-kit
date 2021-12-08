@@ -30,35 +30,3 @@
 .justify-end {
 	justify-content: end;
 }
-
-@each $breakpoint, $value in token('breakpoints') {
-	@media (min-width: $value) {
-		.#{$breakpoint}\:items-start {
-			align-items: start;
-		}
-
-		.#{$breakpoint}\:items-center {
-			align-items: center;
-		}
-
-		.#{$breakpoint}\:items-end {
-			align-items: end;
-		}
-
-		.#{$breakpoint}\:justify-start {
-			justify-content: start;
-		}
-
-		.#{$breakpoint}\:justify-center {
-			justify-content: center;
-		}
-
-		.#{$breakpoint}\:justify-between {
-			justify-content: space-between;
-		}
-
-		.#{$breakpoint}\:justify-end {
-			justify-content: end;
-		}
-	}
-}

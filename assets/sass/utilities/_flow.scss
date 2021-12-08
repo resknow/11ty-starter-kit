@@ -4,7 +4,7 @@
 }
 
 .flow > * + * {
-	margin-top: var(--flow-space);
+	margin-block-start: var(--flow-space);
 }
 
 @each $token, $value in token('space') {

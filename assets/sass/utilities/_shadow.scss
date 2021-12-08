@@ -2,4 +2,8 @@
 	.shadow-#{$token} {
 		box-shadow: #{$value};
 	}
+
+	.text-shadow-#{$token} {
+		text-shadow: #{$value};
+	}
 }

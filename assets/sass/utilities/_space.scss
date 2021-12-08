@@ -1,20 +1,18 @@
 @each $token, $value in token('space') {
 	.px-#{$token} {
-		padding-left: #{$value};
-		padding-right: #{$value};
+		padding-inline: #{$value};
 	}
 
 	.py-#{$token} {
-		padding-top: #{$value};
-		padding-bottom: #{$value};
+		padding-block: #{$value};
 	}
 
 	.ml-#{$token} {
-		margin-left: #{$value};
+		margin-inline-start: #{$value};
 	}
 
 	.mt-#{$token} {
-		margin-top: #{$value};
+		margin-block-start: #{$value};
 	}
 
 	.gap-#{$token} {

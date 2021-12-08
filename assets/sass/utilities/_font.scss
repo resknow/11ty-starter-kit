@@ -34,16 +34,18 @@
 }
 
 /* Text Alignment */
-.align-left {
-	text-align: left;
+.align-left,
+.align-start {
+	text-align: start;
 }
 
 .align-center {
 	text-align: center;
 }
 
-.align-right {
-	text-align: right;
+.align-right,
+.align-end {
+	text-align: end;
 }
 
 /* Text Style */
