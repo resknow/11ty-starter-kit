@@ -28,21 +28,3 @@ $grid-columns: 12 !default;
 		grid-column-end: span #{i};
 	}
 }
-
-@each $breakpoint, $value in token('breakpoints') {
-	@media (min-width: $value) {
-		@for $i from 1 through $grid-columns {
-			.#{$breakpoint}\:cols-#{$i} {
-				--grid-columns: #{$i};
-			}
-
-			.#{$breakpoint}\:col-start-#{$i} {
-				grid-column-start: #{$i};
-			}
-
-			.#{$breakpoint}\:col-span-#{$i} {
-				grid-column-end: span #{$i};
-			}
-		}
-	}
-}
