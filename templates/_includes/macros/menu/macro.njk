@@ -5,7 +5,7 @@
                 {% if link.condition | default(true) %}
                     {% if link.children %}
                     <li x-data="{ isOpen: false }" class="menu__item">
-                        <a @click.prevent="isOpen = !isOpen" href="{{ link.href }}" class="flex items-center">
+                        <a @mouseover.debounce="isOpen = !isOpen" href="{{ link.href }}" class="flex items-center">
                             <span>{{ link.label }}</span>
                             {% icon "caret-down", "ml-2 size-sm" %}
                         </a>

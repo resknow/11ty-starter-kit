@@ -4,19 +4,6 @@
 	--padding-y: var(--space-2);
 }
 
-.accordion__heading {
-	border: var(--border);
-	padding: var(--padding-y) var(--padding-x);
-	position: relative;
-}
-
-.accordion__heading > button {
-	appearance: none;
-	background: transparent;
-	border: 0;
-	padding: 0;
-}
-
 .accordion__heading-icon {
 	fill: var(--color-gray-50);
 	position: absolute;

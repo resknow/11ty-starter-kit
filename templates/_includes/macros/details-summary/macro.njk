@@ -1,0 +1,28 @@
+{#
+
+    id: Unique ID for this set of tabs, required if you have more than one per page
+    items: Accordion content, each item requires title and content.
+    class: Optional class to add to the component wrapper
+
+#}
+
+{% macro accordion(_) %}
+    {% set id = _.id | default('item') %}
+
+    <div
+        class="accordion {{ _.class }}"
+        x-data="{ activeItem: null }"
+    >
+        {% for item in _.items %}
+        <details
+            class="accordion__panel"
+            @toggle="activeItem = {{ loop.index }}"
+        >
+            <summary class="accordion__heading | h4">
+                {{ item.title }}
+            </summary>
+            {{ item.content | safe }}
+        </details>
+        {% endfor %}
+    </div>
+{% endmacro %}
