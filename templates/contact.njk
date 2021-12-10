@@ -1,9 +1,5 @@
 ---
 title: Contact Us
-scripts:
-    - https://unpkg.com/postform-js/dist/postform.js
-    - https://maps.googleapis.com/maps/api/js?key=AIzaSyAeP_G3ffklPHmkCIdhkVGq0GtzhusHHls
-    - /assets/js/wc-google-map.js
 ---
 
 <div class="block-area | mt-20">
@@ -24,8 +20,4 @@ scripts:
             <p>{{ site.address }}</p>
         </div>
     </div>
-
-    {% renderForm "contactForm" %}
-
-    <wc-google-map class="is-full" lat={{ site.location.lat }} lng={{ site.location.lng }} zoom="15"></wc-google-map>
 </div>
