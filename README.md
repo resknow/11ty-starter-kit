@@ -31,4 +31,4 @@ npm install && npm run dev
 ## Documentation
 
 🛠 WIP
-[https://resknow.notion.site/11ty-Starter-Kit-CSS-Documentation-0513322747e3428ea77bf7c3e92aee4a](Docs on Notion)
+[Docs on Notion](https://resknow.notion.site/11ty-Starter-Kit-CSS-Documentation-0513322747e3428ea77bf7c3e92aee4a)
