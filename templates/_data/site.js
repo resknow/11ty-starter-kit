@@ -12,7 +12,7 @@ module.exports = {
 	address: '13 St Johns Parade, Sidcup, Kent, DA14 6ES',
 	location: {
 		lat: `51.42492021179657`,
-		lng: `0.10547518730163574`
+		lng: `0.10547518730163574`,
 	},
 
 	/**
@@ -34,10 +34,10 @@ module.exports = {
 					{ label: 'Buttons', href: '/examples/buttons/' },
 					{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
 					{ label: 'Icons', href: '/examples/icons/' },
-					{ label: 'Accordion & Tabs', href: '/examples/tabs/' }
-				]
-			}
-		]
+					{ label: 'Accordion & Tabs', href: '/examples/tabs/' },
+				],
+			},
+		],
 	},
 
 	/**
@@ -55,7 +55,7 @@ module.exports = {
 	 * For page specific javascript, use the same keys in
 	 * frontmatter.
 	 */
-	scripts: [`/bundle.js`],
+	scripts: [`/bundle.js`, `/bundle.vue.js`],
 
 	/**
 	 * Cookie Consent
@@ -67,7 +67,7 @@ module.exports = {
 	 * You can customise the text shown by setting a text property
 	 */
 	cookieConsent: {
-		show: true
+		show: true,
 	},
 
 	/**
@@ -79,5 +79,5 @@ module.exports = {
 	css: {
 		// purge: true,
 		// minify: true
-	}
+	},
 };
