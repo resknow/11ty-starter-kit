@@ -1,4 +1,7 @@
-/* Form Styles */
+form {
+	accent-color: var(--accent-color, var(--color-primary, inherit));
+}
+
 label {
 	display: block;
 	font-size: inherit;
