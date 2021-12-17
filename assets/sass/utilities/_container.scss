@@ -1,5 +1,6 @@
-/** Container Utility **/
-.container {
-	max-width: var(--max-width, 64rem);
-	margin-inline: auto;
+@if (config('utilities.container', true)) {
+	.container {
+		max-width: var(--max-width, 64rem);
+		margin-inline: auto;
+	}
 }
