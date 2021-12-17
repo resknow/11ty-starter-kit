@@ -50,13 +50,13 @@
 	--row-gap: var(--space-4);
 }
 
-.block-area > .is-wide,
-.block-area > .is-full {
+.block-area > .alignwide,
+.block-area > .alignfull {
 	grid-column: 1 / -1;
 }
 
 @media (min-width: 460px) {
-	.block-area > .is-wide {
+	.block-area > .alignwide {
 		grid-column: 2 / span 3;
 	}
 }
@@ -83,7 +83,7 @@
 		grid-column: 4;
 	}
 
-	.block-area > .is-wide {
+	.block-area > .alignwide {
 		grid-column: 3 / span 3;
 	}
 }
