@@ -2,6 +2,11 @@
 	@each $token, $value in token('aspect-ratio') {
 		.aspect-ratio-#{$token} {
 			aspect-ratio: #{$value};
+
+			@if (config('utilities.aspectRatio.resetSize', false)) {
+				height: auto;
+				width: 100%;
+			}
 		}
 	}
 }
