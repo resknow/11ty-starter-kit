@@ -1,5 +1,5 @@
 @if (config('utilities.grid', true)) {
-	$grid-columns: config('utilities.grid.columns', 12);
+	$grid-columns: config('utilities.grid.columns', 4);
 
 	.grid {
 		display: grid;
