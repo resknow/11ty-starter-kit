@@ -4,6 +4,15 @@ description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Ty
 ---
 <section class="block-area">
 
+    {% component "tabs", { class: "my-accordion", headings: ["Tab 1", "Tab 2"] } %}
+        {% component "tabs/tab", { index: 1 } %}
+            <p>Maybe we can next these things?</p>
+        {% endcomponent %}
+        {% component "tabs/tab", { index: 2 } %}
+            <p>Yes we can!</p>
+        {% endcomponent %}
+    {% endcomponent %}
+
     <main class="flow flow-space-20 mw-md py-32">
         <header class="flow flow-space-2">
             <h1 class="size-4xl">11ty Starter</h1>

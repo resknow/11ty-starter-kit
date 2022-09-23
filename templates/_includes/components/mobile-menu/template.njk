@@ -1,8 +1,7 @@
-{% macro mobileMenu(items, phoneNumber) %}
 <div x-data>
     <nav class="mobile-menu" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
         <ul>
-            {% for link in items %}
+            {% for link in links %}
                 {% if link.condition | default(true) %}
                 <li>
                     <a href="{{ link.href }}">{{ link.label }}</a>
@@ -39,4 +38,3 @@
         <span class="bar"></span>
     </button>
 </div>
-{% endmacro %}

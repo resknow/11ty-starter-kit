@@ -8,6 +8,7 @@ outside elements can react to it.
 ---#}
 <script>
     document.addEventListener('alpine:initializing', () => {
+        Alpine.store( 'fontSize', 'base' );
         Alpine.store( 'menuIsOpen', false );
     });
 </script>

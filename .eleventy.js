@@ -1,17 +1,28 @@
 // Change this to true if you want your browser to open when you run npm run dev
 const shouldAutoOpenBrowser = false;
-const isDemoMode = process.env.DEMO_MODE || false;
 
 const fs = require('fs');
 const eleventyNavigationPlugin = require('@11ty/eleventy-navigation');
 const syntaxHighlight = require('@11ty/eleventy-plugin-syntaxhighlight');
 const iconShortcode = require('./functions/shortcode.icon');
+const formatDateFilter = require('./functions/filter.formatDate');
+const nunjucksEnvironment = require('@11ty/eleventy/src/Engines/Nunjucks');
 
 module.exports = (eleventyConfig) => {
-	isDemoMode && console.warn(`*** ⚠ Running in demo mode ⚠ ***`);
-
 	// Shortcodes
 	eleventyConfig.addShortcode('icon', iconShortcode);
+
+	// Components
+	eleventyConfig.addPairedNunjucksShortcode('component', function (content, name, context = {}) {
+		let nunjucks = new nunjucksEnvironment('components', 'templates/_includes');
+		return nunjucks.njkEnv.render(`templates/_includes/components/${name}/template.njk`, {
+			content: content,
+			...context,
+		});
+	});
+
+	// Filters
+	eleventyConfig.addFilter('date', formatDateFilter);
 
 	// Plugins
 	eleventyConfig.addPlugin(eleventyNavigationPlugin);

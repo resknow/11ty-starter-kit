@@ -1,0 +1,5 @@
+{% set id = id | default('item') %}
+
+<div class="accordion {{ class }}" x-data="{ activeItem: '' }">
+    {{ content | safe }}
+</div>

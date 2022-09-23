@@ -1,0 +1,8 @@
+<div
+    id="{{ id }}-{{ index }}"
+    x-show="activeTab === {{ index }}"
+    :aria-current="activeTab === {{ index }}"
+    class="tab"
+>
+    {{ content | safe }}
+</div>
