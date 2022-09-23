@@ -1,6 +1,6 @@
 {
 	"name": "11ty-starter",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"description": "An SEO ready starter kit for 11ty with Design Tokens, Responsive Type Scale and Cypress Testing.",
 	"main": ".eleventy.js",
 	"scripts": {
