@@ -12,7 +12,7 @@ module.exports = {
 	address: '13 St Johns Parade, Sidcup, Kent, DA14 6ES',
 	location: {
 		lat: `51.42492021179657`,
-		lng: `0.10547518730163574`
+		lng: `0.10547518730163574`,
 	},
 
 	/**
@@ -24,20 +24,7 @@ module.exports = {
 	 * Menus
 	 */
 	menus: {
-		main: [
-			{ label: 'Home', href: '/' },
-			{
-				label: 'Examples',
-				href: '#',
-				condition: process.env.DEMO_MODE || false,
-				children: [
-					{ label: 'Buttons', href: '/examples/buttons/' },
-					{ label: 'Grid Layouts', href: '/examples/grid-layouts/' },
-					{ label: 'Icons', href: '/examples/icons/' },
-					{ label: 'Accordion & Tabs', href: '/examples/tabs/' }
-				]
-			}
-		]
+		main: [{ label: 'Home', href: '/' }],
 	},
 
 	/**
@@ -67,7 +54,7 @@ module.exports = {
 	 * You can customise the text shown by setting a text property
 	 */
 	cookieConsent: {
-		show: true
+		show: true,
 	},
 
 	/**
@@ -79,5 +66,5 @@ module.exports = {
 	css: {
 		// purge: true,
 		// minify: true
-	}
+	},
 };

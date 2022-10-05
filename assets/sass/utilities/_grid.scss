@@ -10,10 +10,7 @@
 	/** Auto Grid **/
 	.auto-grid,
 	.grid-auto {
-		grid-template-columns: repeat(
-			auto-fit,
-			minmax(var(--min-width, 10rem), 1fr)
-		);
+		grid-template-columns: repeat(auto-fit, minmax(var(--min-width, 10rem), 1fr));
 	}
 
 	@for $i from 1 through $grid-columns {
@@ -26,7 +23,7 @@
 		}
 
 		.col-span-#{$i} {
-			grid-column-end: span #{i};
+			grid-column-end: span #{$i};
 		}
 	}
 
