@@ -1,5 +1,3 @@
-$showMenuAt: 900px !default;
-
 .menu {
 	display: none;
 
@@ -26,7 +24,7 @@ $showMenuAt: 900px !default;
 		min-width: var(--menu-dropdown-min-width, 10rem);
 	}
 
-	@media (min-width: $showMenuAt) {
+	@media (min-width: 768px) {
 		display: block;
 	}
 }

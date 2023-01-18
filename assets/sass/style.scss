@@ -1,19 +1,8 @@
-@import 'functions/*.scss';
-
-/* Config */
-@import 'config';
-
-/* Design Tokens */
-@import 'tokens';
-
 /* Base Styles */
-@import 'base';
+@use 'base' as *;
 
 /* Components */
-@import 'components/*.scss';
+@use 'components' as *;
 
 /* Utilities */
-@import 'utilities/*.scss';
-
-/* Vendor */
-@import 'vendor/*.scss';
+@use 'utilities' as *;

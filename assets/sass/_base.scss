@@ -1,3 +1,5 @@
+@use 'tokens' as *;
+
 :root {
 	@each $category, $values in $tokens {
 		@each $token, $value in $values {

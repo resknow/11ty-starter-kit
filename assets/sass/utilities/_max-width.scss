@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.maxWidth', true)) {
 	@each $token, $value in token('max-width') {
 		.mw-#{$token} {

@@ -1,3 +1,6 @@
+@use '../config' as *;
+@use '../functions' as *;
+
 @if (config('utilities.alignment', true)) {
 	/**
 	 * Alignment Utilities
@@ -5,6 +8,7 @@
 	 * These utilities are meant to be used with Grid or Flex properties
 	 */
 	.items-start {
+		align-items: flex-start;
 		align-items: start;
 	}
 
@@ -13,10 +17,12 @@
 	}
 
 	.items-end {
+		align-items: flex-end;
 		align-items: end;
 	}
 
 	.justify-start {
+		justify-content: flex-start;
 		justify-content: start;
 	}
 
@@ -29,6 +35,45 @@
 	}
 
 	.justify-end {
+		justify-content: flex-end;
 		justify-content: end;
+	}
+
+	@if (config('utilities.alignment.responsiveVariants')) {
+		@each $breakpoint, $value in token('breakpoints') {
+			@media (min-width: $value) {
+				.#{$breakpoint}\:items-start {
+					align-items: flex-start;
+					align-items: start;
+				}
+
+				.#{$breakpoint}\:items-center {
+					align-items: center;
+				}
+
+				.#{$breakpoint}\:items-end {
+					align-items: flex-end;
+					align-items: end;
+				}
+
+				.#{$breakpoint}\:justify-start {
+					justify-content: flex-start;
+					justify-content: start;
+				}
+
+				.#{$breakpoint}\:justify-center {
+					justify-content: center;
+				}
+
+				.#{$breakpoint}\:justify-between {
+					justify-content: space-between;
+				}
+
+				.#{$breakpoint}\:justify-end {
+					justify-content: flex-end;
+					justify-content: end;
+				}
+			}
+		}
 	}
 }

@@ -2,10 +2,12 @@
 title: Page Not Found
 permalink: /404.html
 eleventyExcludeFromCollections: true
-layout: default
 ---
+{% extends "layouts/default.njk" %}
 
+{% block content %}
 <main class="container | flow flow-space-3 | py-20 px-12">
     <h1>404</h1>
     <p>The page you're looking for could not be found.</p>
 </main>
+{% endblock %}

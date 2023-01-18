@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.grid', true)) {
 	$grid-columns: config('utilities.grid.columns', 4);
 

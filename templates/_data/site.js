@@ -21,6 +21,13 @@ module.exports = {
 	url: `http://localhost:8080`,
 
 	/**
+	 * CMS Config
+	 */
+	wordpress: {
+		baseUri: 'https://cms.resknow.net/ezeefit/wp-json/wp/v2',
+	},
+
+	/**
 	 * Menus
 	 */
 	menus: {
@@ -33,7 +40,7 @@ module.exports = {
 	 * For page specific stylesheets, use the same keys in
 	 * frontmatter.
 	 */
-	stylesheets: [`/style.css`],
+	stylesheets: [`/style.css`, `/components.css`],
 
 	/**
 	 * Global Javascript, added in the <head> of each page

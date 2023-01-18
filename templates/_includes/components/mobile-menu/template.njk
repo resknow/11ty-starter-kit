@@ -1,7 +1,7 @@
 <div x-data>
     <nav class="mobile-menu" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
         <ul>
-            {% for link in links %}
+            {% for link in props.links %}
                 {% if link.condition | default(true) %}
                 <li>
                     <a href="{{ link.href }}">{{ link.label }}</a>
@@ -20,10 +20,10 @@
             {% endfor %}
         </ul>
 
-        {% if phoneNumber %}
+        {% if _.phoneNumber %}
         <div class="mobile-menu__phone">
             <p class="uppercase c-gray-70 tracking-wide size-sm">Call Us</p>
-            <a href="tel:{{ phoneNumber }}">{{ phoneNumber }}</a>
+            <a href="tel:{{ _.phoneNumber }}">{{ _.phoneNumber }}</a>
         </div>
         {% endif %}
     </nav>

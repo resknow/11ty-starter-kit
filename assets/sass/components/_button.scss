@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 .btn,
 input[type='file']::file-selector-button {
 	--btn-background-color: var(--color-gray-90);

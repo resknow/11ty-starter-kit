@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.flow', true)) {
 	.flow > * {
 		--flow-space: var(--space-4, 1em);

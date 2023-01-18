@@ -1,3 +1,5 @@
+@use '../tokens' as *;
+
 @function token($key) {
 	@if map-has-key($tokens, $key) {
 		@return map-get($tokens, $key);

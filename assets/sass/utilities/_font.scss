@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.font', true)) {
 	/* Font family */
 	@each $token, $value in token('font') {

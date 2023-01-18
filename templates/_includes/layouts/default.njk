@@ -1,3 +1,4 @@
+{% from "component.njk" import component %}
 <!doctype html>
 <html lang="{{ site.language | default('en') }}">
     <head>
@@ -16,7 +17,7 @@
             <link rel="stylesheet" href="{{ href }}">
         {% endfor %}
 
-        {% for href in stylesheets %}
+        {% for id, href in stylesheets %}
             <link rel="stylesheet" href="{{ href }}">
         {% endfor %}
 
@@ -43,13 +44,11 @@
     </head>
     <body class="{{ bodyClass }}">
 
-        {% include "partials/header.njk" ignore missing %}
+        {{ component("header", { site: site }) }}
 
-        {{ content | safe }}
+        {% block content %}{% endblock %}
 
-        {% include "partials/footer.njk" ignore missing %}
-
-        {% include "partials/global-state.njk" ignore missing %}
+        {{ component("footer", { site: site }) }}
 
         {% if site.cookieConsent.show %}
             <cookie-consent-banner hidden>

@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.container', true)) {
 	.container {
 		max-width: var(--max-width, 64rem);

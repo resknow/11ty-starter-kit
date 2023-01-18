@@ -1,0 +1,20 @@
+---
+pagination:
+    data: posts
+    size: 5
+---
+
+{% for post in pagination.items %}
+<article class="flow flow-space-3 py-8 px-10">
+    <h2>{{ post.title.rendered }}</h2>
+    <a class="btn" href="/post/{{ post.slug }}">Read post</a>
+</article>
+{% endfor %}
+
+<nav class="px-10">
+    <ul class="cluster">
+        {% for item in pagination.pages %}
+            <li><a href="{{ pagination.hrefs[ loop.index0 ] }}">{{ loop.index }}</a></li>
+        {% endfor %}
+    </ul>
+</nav>

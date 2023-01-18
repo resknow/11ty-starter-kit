@@ -1,6 +1,6 @@
 <nav class="menu">
     <ul class="flex gap-6">
-        {% for link in links %}
+        {% for link in props.links %}
             {% if link.condition | default(true) %}
                 {% if link.children %}
                 <li x-data="{ isOpen: false }" class="menu__item">

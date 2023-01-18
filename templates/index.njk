@@ -1,36 +1,37 @@
 ---
 title: Home
-description: An SEO ready starter kit for 11ty with Design Tokens, Responsive Type Scale and Cypress Testing.
+description: A starter kit for building websites with Eleventy
 ---
-<section class="block-area">
 
-    <main class="flow flow-space-20 mw-md py-32">
-        <header class="flow flow-space-2">
-            <h1 class="size-4xl">11ty Starter</h1>
-            <p class="c-gray-90">Everything you need to get up and running quickly with a new 11ty site.</p>
-        </header>
-        {% component "tabs", { class: "my-accordion", headings: ["Tab 1", "Tab 2"] } %}
-            {% component "tabs/tab", { index: 1 } %}
-                <p>This is an example of the tab component, check it out in <code class="size-sm">templates/index.njk</code></p>
-            {% endcomponent %}
-            {% component "tabs/tab", { index: 2 } %}
-                <p>Hello :)</p>
-            {% endcomponent %}
-        {% endcomponent %}
-    </main>
+{% extends "layouts/default.njk" %}
 
-    <div class="alignwide bg-gray-10 px-20 py-8">Make content wider with the <code>.alignwide</code> class</div>
+{% block content %}
 
-    <div class="alignfull bg-gray-90 c-white px-20 py-8">Make content full width with the <code>.alignfull</code> class</div>
+    <!-- delete -->
+    <style>
+        main {
+            text-align: center;
+        }
 
-    <footer class="cluster justify-between | mt-10 py-4 c-gray-70 size-sm">
-        <p>
-            {{ site.name }} &copy; {{ util.currentYear }}.
-            <a class="ml-3" href="/privacy-policy">Privacy Policy</a>
+        h1 {
+            font-size: var(--size-5xl);
+        }
+    </style>
+
+    <main class="flow flow-space-3 px-8 py-20">
+        <h1>{{ ["G'day", "Hey", "Sup", "Bonjour", "Seiki", "Ciao", "Hola"] | random }}</h1>
+        <p class="c-gray-70">
+            Don't forget to update your project info in
+            <a href="vscode://file/{{ util.cwd }}/templates/_data/site.js"><code class="bg-gray-10 c-neutral size-sm inline-block px-2 py-1 radius-base">_data/site.js</code></a>
         </p>
+        <nav class="flow flow-space-2 mt-12">
+            <h2 class="h4">Resources</h4>
+            <ul class="cluster justify-center gap-6">
+                <li><a href="https://resknow.notion.site/8ade470905054217af04ef7ef7ff0289?v=4d3bea11bfd04664a5581f540de3ec11">Components &amp; Patterns</a></li>
+                <li><a href="https://resknow.notion.site/CSS-Documentation-0513322747e3428ea77bf7c3e92aee4a">CSS Documentation</a></li>
+            </ul>
+        </nav>
+    </main>
+    <!-- end delete -->
 
-        <!-- Component: Designed by / Credit -->
-        {% include "partials/designed-by.njk" %}
-    </footer>
-
-</section>
+{% endblock %}

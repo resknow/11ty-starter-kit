@@ -1,3 +1,4 @@
+@use '../functions' as *;
 @use 'sass:math';
 
 @if (config('utilities.color', true)) {

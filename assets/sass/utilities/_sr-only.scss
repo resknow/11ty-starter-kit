@@ -1,3 +1,5 @@
+@use '../functions' as *;
+
 @if (config('utilities.srOnly', true)) {
 	.sr-only {
 		border: 0 !important;
