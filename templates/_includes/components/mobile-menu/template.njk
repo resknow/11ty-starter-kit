@@ -1,5 +1,5 @@
 <div x-data>
-    <nav class="mobile-menu" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
+    <nav class="mobile-menu bg-negative" :data-state="$store.menuIsOpen ? 'open' : 'closed'">
         <ul>
             {% for link in props.links %}
                 {% if link.condition | default(true) %}

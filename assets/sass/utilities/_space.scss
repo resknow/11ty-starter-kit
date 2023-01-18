@@ -1,25 +1,27 @@
 @use '../functions' as *;
 
 @if config('utilities.space', true) {
-	@each $token, $value in token('space') {
-		.px-#{$token} {
-			padding-inline: #{$value};
-		}
+	@layer utilities {
+		@each $token, $value in token('space') {
+			.px-#{$token} {
+				padding-inline: #{$value};
+			}
 
-		.py-#{$token} {
-			padding-block: #{$value};
-		}
+			.py-#{$token} {
+				padding-block: #{$value};
+			}
 
-		.ml-#{$token} {
-			margin-inline-start: #{$value};
-		}
+			.ml-#{$token} {
+				margin-inline-start: #{$value};
+			}
 
-		.mt-#{$token} {
-			margin-block-start: #{$value};
-		}
+			.mt-#{$token} {
+				margin-block-start: #{$value};
+			}
 
-		.gap-#{$token} {
-			gap: #{$value};
+			.gap-#{$token} {
+				gap: #{$value};
+			}
 		}
 	}
 }

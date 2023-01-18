@@ -1,9 +1,11 @@
 @use '../functions' as *;
 
 @if (config('utilities.borderRadius', true)) {
-	@each $token, $value in token('radius') {
-		.radius-#{$token} {
-			border-radius: #{$value};
+	@layer utilities {
+		@each $token, $value in token('radius') {
+			.radius-#{$token} {
+				border-radius: #{$value};
+			}
 		}
 	}
 }

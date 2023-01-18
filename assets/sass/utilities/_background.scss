@@ -1,10 +1,12 @@
 @if (config('utilities.background', true)) {
-	[class^='bg-'] {
-		background-image: var(--image);
-	}
+	@layer utilities {
+		[class^='bg-'] {
+			background-image: var(--image);
+		}
 
-	.bg-cover {
-		background-position: center;
-		background-size: cover;
+		.bg-cover {
+			background-position: center;
+			background-size: cover;
+		}
 	}
 }

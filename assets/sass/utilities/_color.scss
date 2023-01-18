@@ -2,26 +2,28 @@
 @use 'sass:math';
 
 @if (config('utilities.color', true)) {
-	@each $token, $value in token('color') {
-		.c-#{$token} {
-			--color-opacity: 1;
-			color: rgba($value, var(--color-opacity));
-		}
-
-		.bg-#{$token} {
-			--bg-opacity: 1;
-			background-color: rgba($value, var(--bg-opacity));
-		}
-	}
-
-	@if (config('utilities.opacity')) {
-		@for $i from 1 through 10 {
-			.c-opacity-#{$i} {
-				--color-opacity: #{math.div($i, 10)};
+	@layer utilities {
+		@each $token, $value in token('color') {
+			.c-#{$token} {
+				--color-opacity: 1;
+				color: rgba($value, var(--color-opacity));
 			}
 
-			.bg-opacity-#{$i} {
-				--bg-opacity: #{math.div($i, 10)};
+			.bg-#{$token} {
+				--bg-opacity: 1;
+				background-color: rgba($value, var(--bg-opacity));
+			}
+		}
+
+		@if (config('utilities.opacity')) {
+			@for $i from 1 through 10 {
+				.c-opacity-#{$i} {
+					--color-opacity: #{math.div($i, 10)};
+				}
+
+				.bg-opacity-#{$i} {
+					--bg-opacity: #{math.div($i, 10)};
+				}
 			}
 		}
 	}

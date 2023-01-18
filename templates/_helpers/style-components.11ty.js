@@ -21,6 +21,6 @@ module.exports = class {
 			});
 		}
 
-		return compiledStyles.join('');
+		return `@layer components { ${compiledStyles.join('')} }`;
 	}
 };

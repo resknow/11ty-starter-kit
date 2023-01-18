@@ -1,8 +1,10 @@
 @use '../functions' as *;
 
 @if (config('utilities.container', true)) {
-	.container {
-		max-width: var(--max-width, 64rem);
-		margin-inline: auto;
+	@layer utilities {
+		.container {
+			max-width: var(--max-width, 64rem);
+			margin-inline: auto;
+		}
 	}
 }
