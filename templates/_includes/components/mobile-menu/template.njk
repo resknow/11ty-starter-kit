@@ -20,10 +20,10 @@
             {% endfor %}
         </ul>
 
-        {% if _.phoneNumber %}
+        {% if props.phoneNumber %}
         <div class="mobile-menu__phone">
             <p class="uppercase c-gray-70 tracking-wide size-sm">Call Us</p>
-            <a href="tel:{{ _.phoneNumber }}">{{ _.phoneNumber }}</a>
+            <a href="tel:{{ props.phoneNumber }}">{{ props.phoneNumber }}</a>
         </div>
         {% endif %}
     </nav>
