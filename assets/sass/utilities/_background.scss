@@ -1,12 +1,24 @@
+@use '../config' as *;
+@use '../functions' as *;
+
 @if (config('utilities.background', true)) {
 	@layer utilities {
-		[class^='bg-'] {
-			background-image: var(--image);
-		}
-
 		.bg-cover {
+			background-image: var(--image);
 			background-position: center;
 			background-size: cover;
+		}
+
+		@if (config('utilities.background.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					.#{$breakpoint}\:bg-cover {
+						background-image: var(--image);
+						background-position: center;
+						background-size: cover;
+					}
+				}
+			}
 		}
 	}
 }

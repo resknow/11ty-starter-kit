@@ -23,5 +23,33 @@
 				gap: #{$value};
 			}
 		}
+
+		@if (config('utilities.space.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					@each $token, $value in token('space') {
+						.#{$breakpoint}\:px-#{$token} {
+							padding-inline: #{$value};
+						}
+
+						.#{$breakpoint}\:py-#{$token} {
+							padding-block: #{$value};
+						}
+
+						.#{$breakpoint}\:ml-#{$token} {
+							margin-inline-start: #{$value};
+						}
+
+						.#{$breakpoint}\:mt-#{$token} {
+							margin-block-start: #{$value};
+						}
+
+						.#{$breakpoint}\:gap-#{$token} {
+							gap: #{$value};
+						}
+					}
+				}
+			}
+		}
 	}
 }

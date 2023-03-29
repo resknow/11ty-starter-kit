@@ -1,3 +1,4 @@
+@use '../config' as *;
 @use '../functions' as *;
 
 @if (config('utilities.cluster', true)) {
@@ -15,6 +16,23 @@
 		 */
 		:where(.cluster) {
 			justify-content: start;
+		}
+
+		@if (config('utilities.cluster.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					.#{$breakpoint}\:cluster {
+						display: flex;
+						flex-wrap: wrap;
+						align-items: center;
+						gap: var(--gap, var(--space-2));
+					}
+
+					:where(.#{$breakpoint}\:cluster) {
+						justify-content: start;
+					}
+				}
+			}
 		}
 	}
 }

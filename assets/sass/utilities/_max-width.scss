@@ -7,5 +7,17 @@
 				max-width: #{$value};
 			}
 		}
+
+		@if (config('utilities.maxWidth.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					@each $token, $value in token('max-width') {
+						.#{$breakpoint}\:mw-#{$token} {
+							max-width: #{$value};
+						}
+					}
+				}
+			}
+		}
 	}
 }

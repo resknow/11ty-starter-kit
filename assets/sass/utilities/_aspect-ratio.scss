@@ -1,3 +1,4 @@
+@use '../config' as *;
 @use '../functions' as *;
 
 @if (config('utilities.aspectRatio', true)) {
@@ -14,6 +15,18 @@
 				@if (config('utilities.aspectRatio.resetSize', false)) {
 					height: auto;
 					width: 100%;
+				}
+			}
+		}
+
+		@if (config('utilities.aspectRatio.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					@each $token, $value in token('aspect-ratio') {
+						.#{$breakpoint}\:aspect-ratio-#{$token} {
+							aspect-ratio: #{$value};
+						}
+					}
 				}
 			}
 		}

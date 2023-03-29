@@ -1,3 +1,4 @@
+@use '../config' as *;
 @use '../functions' as *;
 
 @if (config('utilities.flow', true)) {
@@ -13,6 +14,18 @@
 		@each $token, $value in token('space') {
 			.flow-space-#{$token} > * {
 				--flow-space: #{$value};
+			}
+		}
+
+		@if (config('utilities.flow.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					@each $token, $value in token('space') {
+						.#{$breakpoint}\:flow-space-#{$token} > * {
+							--flow-space: #{$value};
+						}
+					}
+				}
 			}
 		}
 	}

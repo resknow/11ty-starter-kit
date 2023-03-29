@@ -1,3 +1,4 @@
+@use '../config' as *;
 @use '../functions' as *;
 
 @if (config('utilities.display', true)) {
@@ -22,6 +23,32 @@
 
 		.inline-grid {
 			display: inline-grid;
+		}
+
+		@if (config('utilities.display.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					.#{$breakpoint}\:block {
+						display: block;
+					}
+
+					.#{$breakpoint}\:inline-block {
+						display: inline-block;
+					}
+
+					.#{$breakpoint}\:flex {
+						display: flex;
+					}
+
+					.#{$breakpoint}\:inline-flex {
+						display: inline-flex;
+					}
+
+					.#{$breakpoint}\:inline-grid {
+						display: inline-grid;
+					}
+				}
+			}
 		}
 	}
 }

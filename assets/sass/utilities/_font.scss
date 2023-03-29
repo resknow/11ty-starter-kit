@@ -1,3 +1,4 @@
+@use '../config' as *;
 @use '../functions' as *;
 
 @if (config('utilities.font', true)) {
@@ -55,6 +56,67 @@
 		/* Text Transform */
 		.uppercase {
 			text-transform: uppercase;
+		}
+
+		@if (config('utilities.font.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					/* Font family */
+					@each $token, $value in token('font') {
+						.#{$breakpoint}\:font-#{$token} {
+							font-family: #{$value};
+						}
+					}
+
+					/* Font size */
+					@each $token, $value in token('size') {
+						.#{$breakpoint}\:size-#{$token} {
+							font-size: #{$value};
+						}
+					}
+
+					/* Weight */
+					@each $token, $value in token('weight') {
+						.#{$breakpoint}\:weight-#{$token} {
+							font-weight: #{$value};
+						}
+					}
+
+					/* Leading / Line Height */
+					@each $token, $value in token('leading') {
+						.#{$breakpoint}\:leading-#{$token} {
+							line-height: #{$value};
+						}
+					}
+
+					/* Tracking / Letter Spacing */
+					@each $token, $value in token('tracking') {
+						.#{$breakpoint}\:tracking-#{$token} {
+							letter-spacing: #{$value};
+						}
+					}
+
+					/* Text Alignment */
+					.#{$breakpoint}\:align-left,
+					.#{$breakpoint}\:align-start {
+						text-align: start;
+					}
+
+					.#{$breakpoint}\:align-center {
+						text-align: center;
+					}
+
+					.#{$breakpoint}\:align-right,
+					.#{$breakpoint}\:align-end {
+						text-align: end;
+					}
+
+					/* Text Transform */
+					.#{$breakpoint}\:uppercase {
+						text-transform: uppercase;
+					}
+				}
+			}
 		}
 	}
 }

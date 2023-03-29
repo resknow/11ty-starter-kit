@@ -11,5 +11,21 @@
 				text-shadow: #{$value};
 			}
 		}
+
+		@if (config('utilities.shadow.responsiveVariants')) {
+			@each $breakpoint, $value in token('breakpoints') {
+				@media (min-width: $value) {
+					@each $token, $value in token('shadow') {
+						.#{$breakpoint}\:shadow-#{$token} {
+							box-shadow: #{$value};
+						}
+
+						.#{$breakpoint}\:text-shadow-#{$token} {
+							text-shadow: #{$value};
+						}
+					}
+				}
+			}
+		}
 	}
 }
