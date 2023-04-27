@@ -1,11 +1,38 @@
 ---
 title: Home
 description: A starter kit for building websites with Eleventy
+scripts:
+    - /assets/js/scooch.js
 ---
 
 {% extends "layouts/default.njk" %}
 
 {% block content %}
+
+    <section
+        x-data="{ scooch: null }"
+        @load.window="scooch = new Scooch($refs.scooch, { autoplay: false, autoplayInterval: 7500, scrollToChange: false, swipeToChange: false })"
+        >
+        <ul x-ref="scooch" class="scooch">
+            <li class="scooch__slide">
+                hi
+            </li>
+            <li class="scooch__slide">
+                bye
+            </li>
+        </ul>
+        <nav>
+            <button class="btn btn--square" @click="scooch.previous()">
+            <!-- left icon -->
+            <span class="sr-only">Previous</span>
+            </button>
+
+            <button class="btn btn--square" @click="scooch.next()">
+            <!-- right icon -->
+            <span class="sr-only">Next</span>
+            </button>
+        </nav>
+    </section>
 
     <!-- delete -->
     <style>
