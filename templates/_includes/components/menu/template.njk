@@ -3,14 +3,14 @@
         {% for link in props.links %}
             {% if link.condition | default(true) %}
                 {% if link.children %}
-                <li x-data="{ isOpen: false }" class="menu__item">
-                    <a @mouseover.debounce="isOpen = !isOpen" href="{{ link.href }}" class="flex items-center">
+                <li x-data="{ isOpen: false }" class="menu__item" style="z-index: {{ loop.index }}">
+                    <a href="{{ link.href }}" class="flex items-center">
                         <span>{{ link.label }}</span>
                         {% icon "caret-down", "ml-2 size-sm" %}
                     </a>
 
                     {% if link.children %}
-                    <ul x-show="isOpen" @click.outside="isOpen = false" x-transition class="menu__dropdown | flow flow-space-2">
+                    <ul x-transition class="menu__dropdown | flow flow-space-2">
                         {% for child in link.children %}
                         <li>
                             <a href="{{ child.href }}">{{ child.label }}</a>
