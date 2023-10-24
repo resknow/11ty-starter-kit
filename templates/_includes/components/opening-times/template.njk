@@ -10,7 +10,7 @@
 
 <div x-data="openingTimes" class="opening-times">
     <ul class="flow flow-space-2">
-        {% for item in props.openingTimes %}
+        {% for item in site.openingTimes %}
             <li class="opening-times__item" :class="{ 'weight-bold': today === '{{ item.day }}' }">
                 <p>{{ dayNames[item.day] }}</p>
                 <p>{{ item.times }}</p>

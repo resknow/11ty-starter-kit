@@ -1,4 +1,4 @@
-{% from "component.njk" import component %}
+{% from "component.njk" import component with context %}
 <!doctype html>
 <html lang="{{ site.language | default('en') }}">
     <head>
@@ -44,11 +44,11 @@
     </head>
     <body class="{{ bodyClass }}">
 
-        {{ component("header", { site: site }) }}
+        {{ component("header") }}
 
         {% block content %}{% endblock %}
 
-        {{ component("footer", { site: site }) }}
+        {{ component("footer") }}
 
         {% if site.cookieConsent.show %}
             <cookie-consent-banner hidden>
