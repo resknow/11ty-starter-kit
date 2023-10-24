@@ -16,6 +16,19 @@ module.exports = {
 	},
 
 	/**
+	 * Opening Times
+	 */
+	openingTimes: [
+		{ day: 'mon', times: '09:00 - 17:00' },
+		{ day: 'tue', times: '09:00 - 17:00' },
+		{ day: 'wed', times: '09:00 - 17:00' },
+		{ day: 'thu', times: '09:00 - 17:00' },
+		{ day: 'fri', times: '09:00 - 17:00' },
+		{ day: 'sat', times: 'Closed' },
+		{ day: 'sun', times: 'Closed' },
+	],
+
+	/**
 	 * Site URL, we use this in the Sitemap
 	 */
 	url: `http://localhost:8080`,
