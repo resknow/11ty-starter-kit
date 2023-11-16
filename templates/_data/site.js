@@ -44,7 +44,19 @@ module.exports = {
 	 * Menus
 	 */
 	menus: {
-		main: [{ label: 'Home', href: '/' }],
+		main: [
+			{ label: 'Home', href: '/' },
+			{
+				label: 'Services',
+				href: '/services/',
+				children: [
+					{ label: 'Service 1', href: '/' },
+					{ label: 'Service 2', href: '/' },
+					{ label: 'Service 3', href: '/' },
+				],
+			},
+			{ label: 'Contact', href: '/contact/' },
+		],
 	},
 
 	/**

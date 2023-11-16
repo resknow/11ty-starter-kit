@@ -1,7 +1,7 @@
-const globby = require('globby');
+const glob = require('glob');
 
 module.exports = async (dir) => {
-	const paths = await globby(dir);
+	const paths = await glob(dir);
 	return paths.map((path) => {
 		return path.replace('./', '/');
 	});

@@ -1,0 +1,144 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import-glob "../../templates/_includes/components/**/style.css";
+@import 'tailwindcss/utilities';
+
+@layer base {
+	body {
+		@apply text-base text-gray-800 antialiased;
+	}
+
+	:where([id]) {
+		@apply scroll-m-xl;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	.h1,
+	.h2,
+	.h3,
+	.h4,
+	.h5,
+	.h6 {
+		@apply text-balance tracking-tight leading-tight font-bold;
+	}
+
+	h1,
+	.h1 {
+		@apply text-4xl;
+	}
+
+	h2,
+	.h2 {
+		@apply text-2xl;
+	}
+
+	h3,
+	.h3 {
+		@apply text-xl;
+	}
+
+	h4,
+	.h4 {
+		@apply text-lg;
+	}
+
+	a {
+		@apply text-blue-600 relative underline underline-offset-2 decoration-black/25 decoration-1 hover:text-blue-700 hover:decoration-current;
+	}
+
+	[disabled] {
+		@apply opacity-50 cursor-not-allowed;
+	}
+
+	svg {
+		@apply fill-current w-5 h-5;
+	}
+
+	/* Remove all animations and transitions for people that prefer not to see them */
+	@media (prefers-reduced-motion: reduce) {
+		* {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+
+	/* Override Cookie Consent button color */
+	cookie-consent-banner button {
+		@apply text-white font-bold shadow-xl;
+	}
+
+	form {
+		@apply accent-blue-500;
+	}
+
+	label {
+		@apply block text-inherit font-bold leading-none;
+	}
+
+	input[type='text'],
+	input[type='password'],
+	input[type='tel'],
+	input[type='email'],
+	input[type='number'],
+	input[type='datetime-local'],
+	input[type='date'],
+	select,
+	textarea {
+		@apply appearance-none bg-white border rounded-sm text-black block text-inherit text-base py-2 px-3 w-full;
+	}
+
+	input[type='text'][data-state='invalid'],
+	input[type='password'][data-state='invalid'],
+	input[type='tel'][data-state='invalid'],
+	input[type='email'][data-state='invalid'],
+	input[type='number'][data-state='invalid'],
+	input[type='datetime-local'][data-state='invalid'],
+	input[type='date'][data-state='invalid'],
+	select[data-state='invalid'],
+	textarea[data-state='invalid'] {
+		@apply border-red-500;
+	}
+
+	input[type='text']:focus,
+	input[type='password']:focus,
+	input[type='tel']:focus,
+	input[type='email']:focus,
+	input[type='number']:focus,
+	input[type='datetime-local']:focus,
+	input[type='date']:focus,
+	select:focus,
+	textarea:focus {
+		@apply border-secondary ring-2 ring-offset-1 ring-secondary-contrast outline-none;
+	}
+}
+
+@layer components {
+}
+
+@layer utilities {
+	.container {
+		padding-inline: theme(spacing.container);
+		margin-inline: auto;
+		max-width: unset;
+	}
+
+	.flow > * + * {
+		margin-block-start: var(--flow-space, theme(spacing.4));
+	}
+
+	.text-balance {
+		text-wrap: balance;
+	}
+
+	.email-address {
+		unicode-bidi: bidi-override;
+		direction: rtl;
+	}
+}

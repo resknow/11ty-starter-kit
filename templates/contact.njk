@@ -7,24 +7,24 @@ scripts:
 
 {% block content %}
 
-<div class="block-area | mt-20">
-    <h1 class="align-center">Contact Us</h1>
-    <div class="is-wide | grid gap-10 align-center md:cols-3">
-        <div class="px-6">
-            <strong class="font-heading c-gray-50 label">Phone</strong>
-            <p class="weight-bold">
-                <a class="size-lg c-brand" href="tel:{{ site.phone }}">{{ site.phone }}</a>
-            </p>
-        </div>
-        <div class="px-6">
-            <strong class="font-heading c-gray-50 label">E-mail</strong>
-            <p class="email-address weight-bold">{{ site.email | reverse }}</p>
-        </div>
-        <div class="px-6">
-            <strong class="font-heading c-gray-50 label">Address</strong>
-            <p>{{ site.address }}</p>
+    <div class="flow flow-space-lg mt-20">
+        <h1 class="text-center">Contact Us</h1>
+        <div class="grid gap-10 text-center md:grid-cols-3">
+            <div class="px-6">
+                <strong class="font-heading text-gray-500">Phone</strong>
+                <p class="font-bold">
+                    <a class="text-lg text-primary" href="tel:{{ site.phone }}">{{ site.phone }}</a>
+                </p>
+            </div>
+            <div class="px-6">
+                <strong class="font-heading text-gray-500">Email</strong>
+                <p class="email-address font-bold">{{ site.email | reverse }}</p>
+            </div>
+            <div class="px-6">
+                <strong class="font-heading text-gray-500">Address</strong>
+                <p>{{ site.address }}</p>
+            </div>
         </div>
     </div>
-</div>
 
 {% endblock %}

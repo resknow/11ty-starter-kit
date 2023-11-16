@@ -1,9 +1,0 @@
-@use '../config' as *;
-
-@function config($key, $fallback: null) {
-	@if map-has-key($config, $key) {
-		@return map-get($config, $key);
-	}
-
-	@return $fallback;
-}
