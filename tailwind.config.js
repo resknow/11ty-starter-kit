@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const defaultTheme = require('tailwindcss/defaultTheme');
-const theme = require('tailwindcss/theme');
 const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */
@@ -39,8 +38,8 @@ module.exports = {
 		 */
 		extend: {
 			colors: {
-				base: theme('colors.gray.950'),
-				contrast: theme('colors.white'),
+				base: '#020617',
+				contrast: '#fff',
 				primary: '#1d4ed8',
 				'primary-contrast': '#dbeafe',
 				secondary: '#be185d',

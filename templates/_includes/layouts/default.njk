@@ -44,11 +44,11 @@
     </head>
     <body class="{{ bodyClass }}">
 
-        {{ component("header") }}
-
-        {% block content %}{% endblock %}
-
-        {{ component("footer") }}
+        <div class="flex flex-1 flex-col min-h-[100dvh]">
+            {{ component("header") }}
+            {% block content %}{% endblock %}
+            {{ component("footer") }}
+        </div>
 
         {% if site.cookieConsent.show %}
             <cookie-consent-banner hidden>
