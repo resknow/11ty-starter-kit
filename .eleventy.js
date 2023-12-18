@@ -3,11 +3,13 @@ const shouldAutoOpenBrowser = false;
 
 const fs = require('fs');
 const iconShortcode = require('./functions/shortcode.icon');
+const imageShortcode = require('./functions/shortcode.image');
 const formatDateFilter = require('./functions/filter.formatDate');
 
 module.exports = (eleventyConfig) => {
 	// Shortcodes
 	eleventyConfig.addShortcode('icon', iconShortcode);
+	eleventyConfig.addShortcode('image', imageShortcode);
 
 	// Filters
 	eleventyConfig.addFilter('date', formatDateFilter);
