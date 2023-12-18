@@ -19,3 +19,8 @@
 .hamburger[data-state='open'] .bar:nth-child(3) {
 	transform: rotate(45deg) translate(-8px, -8px);
 }
+
+.mobile-menu {
+	height: 100vh;
+	height: 100dvh;
+}
