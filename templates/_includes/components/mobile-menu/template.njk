@@ -7,13 +7,21 @@
             {% for link in props.links %}
                 {% if link.condition | default(true) %}
                 <li>
-                    <a class="block text-gray-700 font-bold py-4 px-8 no-underline" href="{{ link.href }}">{{ link.label }}</a>
+                    <a
+                        class="block text-gray-700 font-bold py-4 px-8 no-underline"
+                        href="{{ link.href }}"
+                        {% if link.target %}target="{{ link.target }}"{% endif %}
+                    >{{ link.label }}</a>
 
                     {% if link.children %}
                         <ul class="mobile-menu__dropdown ml-4">
                             {% for child in link.children %}
                             <li>
-                                <a class="block text-gray-700 font-normal py-4 px-8 no-underline" href="{{ child.href }}">{{ child.label }}</a>
+                                <a
+                                    class="block text-gray-700 font-normal py-4 px-8 no-underline"
+                                    href="{{ child.href }}"
+                                    {% if child.target %}target="{{ child.target }}"{% endif %}
+                                >{{ child.label }}</a>
                             </li>
                             {% endfor %}
                         </ul>

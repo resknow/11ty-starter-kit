@@ -55,6 +55,7 @@ module.exports = {
 					{ label: 'Service 3', href: '/' },
 				],
 			},
+			{ label: 'External Link', href: '/', target: '_blank' },
 			{ label: 'Contact', href: '/contact/' },
 		],
 	},
