@@ -1,10 +1,10 @@
 // Change this to true if you want your browser to open when you run npm run dev
 const shouldAutoOpenBrowser = false;
 
-const fs = require('fs');
 const iconShortcode = require('./functions/shortcode.icon');
 const imageShortcode = require('./functions/shortcode.image');
 const formatDateFilter = require('./functions/filter.formatDate');
+const findCustomElements = require('./functions/findCustomElements');
 
 module.exports = (eleventyConfig) => {
 	// Shortcodes
@@ -23,6 +23,9 @@ module.exports = (eleventyConfig) => {
 	eleventyConfig.setBrowserSyncConfig({
 		open: shouldAutoOpenBrowser ? 'local' : false,
 	});
+
+	// Find and inject scripts for custom elements
+	eleventyConfig.on('eleventy.after', findCustomElements);
 
 	return {
 		dir: {
