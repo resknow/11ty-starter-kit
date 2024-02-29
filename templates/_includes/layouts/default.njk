@@ -29,6 +29,8 @@
             <script src="{{ src }}" defer></script>
         {% endfor %}
 
+        <!-- CustomElementScripts -->
+
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -51,7 +53,7 @@
         </div>
 
         {% if site.cookieConsent.show %}
-            <cookie-consent-banner hidden>
+            <cookie-consent-banner no-load hidden>
                 <p>{{ site.cookieConsent.text | default('We use cookies to provide the best experience.') }}</p>
             </cookie-consent-banner>
             <script type="module" src="https://unpkg.com/simple-cookie-consent-banner/cookie-consent-banner.js"></script>

@@ -1,6 +1,6 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
-@import-glob "../../templates/_includes/components/**/style.css";
+/* @import-glob "../../templates/_includes/components/**/style.css"; */
 @import 'tailwindcss/utilities';
 
 @layer base {
@@ -48,7 +48,7 @@
 	}
 
 	a {
-		@apply text-blue-600 relative underline underline-offset-2 decoration-black/25 decoration-1 hover:text-blue-700 hover:decoration-current;
+		@apply text-link relative underline underline-offset-2 decoration-black/25 decoration-1 hover:decoration-current;
 	}
 
 	[disabled] {
@@ -75,7 +75,7 @@
 	}
 
 	form {
-		@apply accent-blue-500;
+		@apply accent-primary;
 	}
 
 	label {
@@ -103,7 +103,7 @@
 	input[type='date'][data-state='invalid'],
 	select[data-state='invalid'],
 	textarea[data-state='invalid'] {
-		@apply border-red-500;
+		@apply border-negative;
 	}
 
 	input[type='text']:focus,
@@ -129,16 +129,7 @@
 		max-width: unset;
 	}
 
-	.flow > * + * {
-		margin-block-start: var(--flow-space, theme(spacing.4));
-	}
-
 	.text-balance {
 		text-wrap: balance;
-	}
-
-	.email-address {
-		unicode-bidi: bidi-override;
-		direction: rtl;
 	}
 }

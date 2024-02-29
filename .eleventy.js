@@ -15,7 +15,7 @@ module.exports = (eleventyConfig) => {
 	eleventyConfig.addFilter('date', formatDateFilter);
 
 	// Passthrough Files/Directories
-	['assets', 'favicon.ico'].forEach((item) => {
+	['assets', 'favicon.ico', '_redirects'].forEach((item) => {
 		eleventyConfig.addPassthroughCopy(item);
 	});
 
