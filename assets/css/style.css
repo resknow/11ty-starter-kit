@@ -1,6 +1,6 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
-/* @import-glob "../../templates/_includes/components/**/style.css"; */
+@import-glob "../../templates/_includes/components/**/style.css";
 @import 'tailwindcss/utilities';
 
 @layer base {
@@ -103,7 +103,7 @@
 	input[type='date'][data-state='invalid'],
 	select[data-state='invalid'],
 	textarea[data-state='invalid'] {
-		@apply border-negative;
+		@apply border-red-500;
 	}
 
 	input[type='text']:focus,
