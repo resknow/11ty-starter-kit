@@ -5,7 +5,6 @@ const glob = require('glob');
 module.exports = class {
 	data() {
 		const files = glob.sync('templates/_includes/components/**/*.js');
-		console.log(files);
 
 		return {
 			layout: false,
