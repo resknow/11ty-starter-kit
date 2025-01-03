@@ -1,0 +1,17 @@
+<snap-to class="SnapTo {{ class }}">
+    <div data-content class="flex items-start gap-md">
+        {{ props.content | safe }}
+    </div>
+    {% if props.actions %}
+        <div class="flex-wrap items-center gap-xs px-container {{ 'hidden lg:flex' if props.actions else 'hidden' }}">
+            <button data-action="prev" type="button">
+                {% icon "arrow-left" %}
+                <span class="sr-only">Previous</span>
+            </button>
+            <button data-action="next" type="button">
+                {% icon "arrow-right" %}
+                <span class="sr-only">Next</span>
+            </button>
+        </div>
+    {% endif %}
+</snap-to>

@@ -1,3 +1,4 @@
+
 const esbuild = require('esbuild');
 const esbuildPostCSS = require('esbuild-postcss');
 
@@ -11,6 +12,7 @@ module.exports = class {
 	}
 
 	async render() {
+
 		let output = '';
 		let result = await esbuild.build({
 			entryPoints: ['assets/css/style.css'],

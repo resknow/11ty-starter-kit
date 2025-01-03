@@ -1,0 +1,61 @@
+snap-to {
+    position: relative;
+}
+
+snap-to [data-content] {
+    align-items: stretch;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    width: 100%;
+    overflow-x: scroll;
+    scroll-padding-inline-start: var(--snap-to-scroll-padding, var(--space-container));
+    padding-inline-end: var(--snap-to-scroll-padding, var(--space-container));
+    padding-block: var(--snap-to-vertical-padding, var(--space-sm));
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+
+snap-to [data-content]:after,
+snap-to [data-content]:before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+snap-to [data-content]:after {
+    background-image: linear-gradient(
+        to left,
+        var(--snap-to-fade-color, var(--color-white)) 0%,
+        var(--snap-to-fade-color, var(--color-white)) 5%,
+        transparent 100%
+    );
+    right: 0;
+    width: calc(var(--snap-to-scroll-padding, var(--space-container)) * 0.8);
+}
+
+snap-to [data-content]:before {
+    background-image: linear-gradient(
+        to right,
+        var(--snap-to-fade-color, var(--color-white)) 0%,
+        var(--snap-to-fade-color, var(--color-white)) 5%,
+        transparent 100%
+    );
+    left: 0;
+    width: calc(var(--snap-to-scroll-padding, var(--space-container)) * 0.8);
+}
+
+snap-to [data-content]::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+}
+
+snap-to [data-content] > * {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+}
+
+snap-to [data-content] > :first-child {
+    margin-inline-start: var(--snap-to-scroll-padding, var(--space-container));
+}

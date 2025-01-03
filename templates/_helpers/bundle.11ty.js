@@ -4,7 +4,7 @@ const glob = require('glob');
 
 module.exports = class {
 	data() {
-		const files = glob.sync('templates/_includes/components/**/*.js');
+		this.components = glob.sync('templates/_includes/components/**/*.js');
 
 		return {
 			layout: false,
@@ -14,11 +14,17 @@ module.exports = class {
 	}
 
 	async render() {
+		let entryPoints = ['assets/js/bundle.js'];
+
+		if (this.components.length) {
+			entryPoints.unshift(...this.components);
+		}
+
 		let output = '';
 		let result = await esbuild.build({
 			bundle: true,
 			minify: true,
-			entryPoints: ['assets/js/bundle.js'],
+			entryPoints: entryPoints,
 			write: false,
 			outdir: 'out',
 		});
