@@ -5,7 +5,9 @@
 	"main": ".eleventy.js",
 	"scripts": {
 		"build": "NODE_ENV=production eleventy",
-		"dev": "NODE_ENV=development eleventy --serve"
+		"dev": "NODE_ENV=development eleventy --serve",
+		"test": "run-p dev cypress",
+		"cypress": "cypress open"
 	},
 	"author": "Chris Galbraith",
 	"license": "MIT",
@@ -18,10 +20,12 @@
 		"alpinejs": "^3.14.8",
 		"autoprefixer": "^10.4.20",
 		"axios": "^1.7.9",
+		"cypress": "^13.17.0",
 		"date-fns": "^4.1.0",
 		"esbuild": "^0.24.2",
 		"esbuild-postcss": "^0.0.4",
 		"lodash": "^4.17.21",
+		"npm-run-all": "^4.1.5",
 		"postcss": "^8.4.49",
 		"postcss-import": "^16.1.0",
 		"postcss-import-ext-glob": "^2.1.1",
