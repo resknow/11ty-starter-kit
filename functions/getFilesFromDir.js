@@ -1,4 +1,5 @@
-const glob = require('glob');
+
+const { glob } = require('glob');
 
 module.exports = async (dir) => {
 	const paths = await glob(dir);
